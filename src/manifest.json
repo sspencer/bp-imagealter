@@ -1,0 +1,10 @@
+{
+  "type": "standalone",
+  "CoreletLibrary": "@ServiceLibrary@",
+  "strings": { 
+    "en": { 
+      "title": "Image Manipulation Tool", 
+      "summary": "Allows you to retouch images faster in your browser."
+    }
+  }
+}
