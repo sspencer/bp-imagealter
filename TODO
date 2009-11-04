@@ -1,0 +1,8 @@
+1. design a mechanism by which the output format and list of actions
+   can be passed into a interpretation pipeline
+
+2. integrate graphicsmagick and a couple sample filters into #1
+
+3. wrap #1 in a threaded design that will up to N processes to occur in 
+   parallel.
+
