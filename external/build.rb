@@ -4,7 +4,12 @@ require "bakery/ports/bakery"
 
 $order = {
   :output_dir => File.join(File.dirname(__FILE__), "built"),
-  :packages => [ "zlib", "libpng", "jpeg", "GraphicsMagick", ],
+  :packages => [
+                "zlib",
+                "libpng",
+                "jpeg",
+                "GraphicsMagick"
+               ],
   :verbose => true
 }
 
