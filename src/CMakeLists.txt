@@ -48,7 +48,7 @@ SET (outputDir "${CMAKE_CURRENT_BINARY_DIR}/${serviceName}")
 # default to a debug build.  This gets us symbols by default under
 # the cmake makefile generator
 IF (NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE "Release")
+  SET(CMAKE_BUILD_TYPE "Debug")
 ENDIF ()
 
 STRING(TOLOWER ${CMAKE_BUILD_TYPE} buildTypeLC)
@@ -72,8 +72,8 @@ SET(EXT_SRCS
   ${ServiceTools}/CppTools/src/bpurlutil.cpp
 )
 
-SET(SRCS service.cpp util/fileutil.cpp)
-SET(HDRS util/bpsync.hh util/bpthread.hh)
+SET(SRCS service.cpp ImageProcessor.cpp util/fileutil.cpp)
+SET(HDRS ImageProcessor.hh util/bpsync.hh util/bpthread.hh)
 
 IF (WIN32)
    FILE(GLOB OS_SRCS "util/*_Windows.cpp")
