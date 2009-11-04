@@ -86,7 +86,8 @@ SET(OSLIBS)
 
 ADD_LIBRARY(${serviceName} MODULE ${EXT_SRCS} ${SRCS} ${OS_SRCS} ${HDRS})
 
-TARGET_LINK_LIBRARIES(${serviceName} jpeg_s zlib_s ${OSLIBS})
+TARGET_LINK_LIBRARIES(${serviceName}
+                      GraphicsMagick_s png_s jpeg_s zlib_s ${OSLIBS})
 
 # create service directory
 FILE(MAKE_DIRECTORY ${outputDir})
