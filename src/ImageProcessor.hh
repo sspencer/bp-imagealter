@@ -40,6 +40,12 @@ namespace imageproc {
     
     typedef enum { UNKNOWN, JPEG, PNG, GIF, } Type;
 
+	/** once per process initialization */
+	void init();
+
+	/** once per process shutdown */
+	void shutdown();
+
     /** given a path, make a best guess at what kind of image is
      *  contained within */
     Type pathToType(const std::string & path); 

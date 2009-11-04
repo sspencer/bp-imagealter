@@ -32,6 +32,20 @@
 
 #include "ImageProcessor.hh"
 
+#include "magick/api.h"
+
+void
+imageproc::init()
+{
+    InitializeMagick(NULL);
+}
+
+void
+imageproc::shutdown()
+{
+    DestroyMagick();
+}
+
 imageproc::Type
 imageproc::pathToType(const std::string & path)
 {

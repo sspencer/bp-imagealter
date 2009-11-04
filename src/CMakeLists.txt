@@ -58,6 +58,7 @@ SET(ServiceTools ${CMAKE_CURRENT_SOURCE_DIR}/../external/bp-service-tools)
 
 INCLUDE_DIRECTORIES(
   "${CMAKE_CURRENT_SOURCE_DIR}/../external/built/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../external/built/include/GraphicsMagick"
   "${ServiceTools}/CppTools/external/bpsdk/include"
   "${ServiceTools}/CppTools/src"
 )
@@ -75,14 +76,16 @@ SET(EXT_SRCS
 SET(SRCS service.cpp ImageProcessor.cpp util/fileutil.cpp)
 SET(HDRS ImageProcessor.hh util/bpsync.hh util/bpthread.hh)
 
+# add required OS libs here
+SET(OSLIBS)
+
 IF (WIN32)
    FILE(GLOB OS_SRCS "util/*_Windows.cpp")
+   # these are separate libraries on winbloze
+   SET(OSLIBS GraphicsMagickCoders_s GraphicsMagickFilters_s)
 ELSE()
    FILE(GLOB OS_SRCS "util/*_Darwin.cpp" "util/*_UNIX.cpp")
 ENDIF ()
-
-# add required OS libs here
-SET(OSLIBS)
 
 ADD_LIBRARY(${serviceName} MODULE ${EXT_SRCS} ${SRCS} ${OS_SRCS} ${HDRS})
 
