@@ -32,7 +32,7 @@
 #include <string>
 
 namespace ft {
-    // generate a path within the specified tempDir with a leave named
+    // generate a path within the specified tempDir with a leaf named
     // the same as the source
     // returns empty on failure
     std::string getPath(std::string tempDir, std::string sourcePath);
