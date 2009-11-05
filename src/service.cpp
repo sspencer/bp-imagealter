@@ -31,7 +31,6 @@
  */
 
 #include "service.hh"
-
 #include "bptypeutil.hh"
 #include "bpurlutil.hh"
 

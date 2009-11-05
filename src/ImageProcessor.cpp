@@ -31,12 +31,17 @@
  */
 
 #include "ImageProcessor.hh"
+#include "Transformations.hh"
 #include "util/fileutil.hh"
 #include "magick/api.h"
 
 #include "service.hh"
 
 #include <sstream>
+
+#ifdef WIN32
+#define strcasecmp _stricmp
+#endif
 
 // a map of supported types.
 // written in init, and only read after that (for threading issues)
@@ -56,6 +61,8 @@ const imageproc::Type imageproc::UNKNOWN = NULL;
 void
 imageproc::init()
 {
+    unsigned int i;
+    
     RegisterStaticModules();
     InitializeMagick(NULL);
 
@@ -80,7 +87,18 @@ imageproc::init()
         arr++;
     }
     ss << " ]";
+    g_bpCoreFunctions->log(BP_INFO, ss.str().c_str());
 
+    ss.str("");
+    ss << "Supported transformations: [ ";
+    first = true;
+    for (i = 0; i < trans::num(); i++)
+    {
+        if (!first) ss << ", ";
+        first = false;
+        ss << trans::get(i)->name;
+    }
+    ss << " ]";
     g_bpCoreFunctions->log(BP_INFO, ss.str().c_str());
 }
 
@@ -122,6 +140,83 @@ imageproc::typeToExt(Type t)
     return ext;
 }
 
+static
+Image * runTransformations(Image * image,
+                           const bp::List & transList,
+                           int quality, std::string & oError)
+{
+    g_bpCoreFunctions->log(
+        BP_INFO, "%lu transformation actions specified",
+        transList.size());
+    
+    for (unsigned int i = 0; i < transList.size(); i++)
+    {
+        const bp::Object * o = transList.value(i);
+
+        std::string command;
+        const bp::Object * args = NULL;
+        
+        // o may either be a string transformation: i.e. "solarize"
+        // or a may transform: i.e. { "crop": { .25, .75, .25, .75 } }
+        // first we'll extract the command
+        if (o->type() == BPTString) {
+            command = (std::string)(*o);            
+        } else  if (o->type() == BPTMap) {
+            const bp::Map * m = (const bp::Map *) o;
+            if (m->size() != 1) {
+                std::stringstream ss;
+                ss << "transform " << i << " is malformed.  An action is  "
+                   << "an object with a single property which is the action "
+                   << "name";
+                oError = ss.str();
+                break;
+            }
+            bp::Map::Iterator i(*m);
+            command.append(i.nextKey());
+            args = m->get(command.c_str());
+            assert(args != NULL);
+        } else {
+            std::stringstream ss;
+            ss << "transform " << i << " is malformed.  An action is  "
+               << "either a string or an object with a single property which "
+               << "is the name of an action to perform";
+            oError = ss.str();
+            break;
+        }
+
+        g_bpCoreFunctions->log(
+            BP_INFO, "transform [%s] with%s args",
+            command.c_str(), (args ? "" : "out"));
+
+        // does the command exist?
+        const trans::Transformation * t = trans::get(command);
+        if (t == NULL) {
+            std::stringstream ss;
+            ss << "no such transformation: " << command;
+            oError = ss.str();
+            break;
+        }
+
+        // are the arguments correct?
+        // XXX
+
+        {
+            Image * newImage = t->transform(image, args, quality, oError);
+            DestroyImage(image);
+            image = newImage;
+        }
+        
+        // abort if the transformation failed
+        if (!image) break;
+    }
+
+    if (!oError.empty() && image) {
+        DestroyImage(image);
+        image = NULL;
+    }
+
+    return image;
+}
 
 std::string
 imageproc::ChangeImage(const std::string & inPath,
@@ -131,8 +226,6 @@ imageproc::ChangeImage(const std::string & inPath,
                        int quality,
                        std::string & oError)
 {
-    
-    
     ExceptionInfo exception;
     Image *images;
     ImageInfo *image_info;
@@ -175,10 +268,19 @@ imageproc::ChangeImage(const std::string & inPath,
     image_info->quality = quality;
 
     g_bpCoreFunctions->log(
-        BP_INFO, "Transformation performed at %d quality (0-100)",
-        quality);
+        BP_INFO, "Quality set to %d (0-100, worst-best)", quality);
 
-    // XXX: this is where we'll run all of the processing
+    // execute 'actions' 
+    images = runTransformations(images, transformations, quality, oError);
+
+    // was all that successful?
+    if (!images)
+    {
+        DestroyImageInfo(image_info);
+        image_info = NULL;
+        DestroyExceptionInfo(&exception);
+        return std::string();
+    }
 
     // let's set the output format correctly (default to input format)
     std::string name;
