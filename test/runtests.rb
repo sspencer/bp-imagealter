@@ -45,6 +45,7 @@ IO.popen("#{sr} #{clet}", "w+") do |srp|
   Dir.glob(File.join(File.dirname(__FILE__), "cases", "*.json")).each do |f|
     tests += 1 
     $stdout.write "#{File.basename(f, ".json")}: "
+    $stdout.flush
     json = JSON.parse(File.read(f))
     # now let's change the 'file' param to a absolute URI
     p = File.join(File.dirname(__FILE__), "test_images", json["file"])
@@ -58,8 +59,11 @@ IO.popen("#{sr} #{clet}", "w+") do |srp|
     #       output buffer.  The 'show' command causes a flush.
     #       fix committed for 2.5.x branch, and we can remove this
     #       once that's live 
+    
+    took = Time.now
     srp.syswrite "inv transform '#{cmd}'\nshow\n"
-    rez = mypread(srp, 1.0, true)
+    rez = mypread(srp, 5.0, true)
+    took = Time.now - took
 
     # now rez is of the form >{ "file": "file:///foo.x" } 1 instance...<
     # we'll strip off the trailing gunk, extract the file url
@@ -77,7 +81,7 @@ IO.popen("#{sr} #{clet}", "w+") do |srp|
       raise "output mismatch" if imgGot != imgWant
       # yay!  it worked!
       successes += 1
-      puts "ok."
+      puts "ok. (took #{took}s)"
     rescue => e
       err = e.to_s
       # for convenience, if the test fails, we'll *save* the output
