@@ -32,10 +32,9 @@ end
 rv = 0
 
 IO.popen("#{sr} #{clet}", "w+") do |srp|
-  puts "spawned ServiceRunner"
-  # discard startup stuff
+  puts "Running ImageAlter tests"
+  # discard startup output
   mypread(srp, 0.5, true)
-  puts "allocating instance"
   srp.syswrite "allocate\n"
   mypread(srp, 0.5, true)
 
