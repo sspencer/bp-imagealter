@@ -49,6 +49,10 @@ imageproc::shutdown()
     DestroyMagick();
 }
 
+#ifdef WIN32
+#define strcasecmp _stricmp
+#endif
+
 imageproc::Type
 imageproc::pathToType(const std::string & path)
 {
@@ -69,8 +73,7 @@ imageproc::pathToType(const std::string & path)
         if (path.length() >= strlen(s_exts[i].ext)) {
             std::string ss =
                 path.substr(path.length() - strlen(s_exts[i].ext));
-            // XXX: nocasecmp
-            if (!ss.compare(std::string(s_exts[i].ext))) {
+            if (!strcasecmp(ss.c_str(), s_exts[i].ext)) {
                 return s_exts[i].type;
             }
         }
