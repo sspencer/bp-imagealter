@@ -1,0 +1,5 @@
+{
+  "file":    "evil_turtle.gif",
+  "format":  "jpg",
+  "actions": [ "noop","noop","noop","noop","noop","noop","noop","noop","noop","noop" ]
+}
