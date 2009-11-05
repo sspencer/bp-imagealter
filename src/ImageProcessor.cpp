@@ -97,8 +97,11 @@ imageproc::ChangeImage(const std::string & inPath,
                        const std::string & tmpDir,
                        Type outputFormat,
                        const bp::List & transformations,
+                       int quality,
                        std::string & oError)
 {
+    
+    
     ExceptionInfo exception;
     Image *images;
     ImageInfo *image_info;
@@ -133,9 +136,17 @@ imageproc::ChangeImage(const std::string & inPath,
         DestroyExceptionInfo(&exception);
         return std::string();
     }
+    
+    // set quality
+    if (quality > 100) quality = 100;
+    if (quality < 0) quality = 0;
+    image_info->quality = quality;
+
+    g_bpCoreFunctions->log(
+        BP_INFO, "Transformation performed at %d quality (0-100)",
+        quality);
 
     // XXX: this is where we'll run all of the processing
-
 
     // let's set the output format correctly (default to input format)
     std::string name;

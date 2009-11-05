@@ -67,6 +67,7 @@ namespace imageproc {
         const std::string & tmpdir,
         Type outputFormat,
         const bp::List & transformations,
+        int quality,
         std::string & error);
 };
 

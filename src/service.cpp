@@ -140,6 +140,13 @@ BPPInvoke(void * instance, const char * funcName,
         } 
     }
 
+    // extract quality argument
+    int quality = 75;
+    if (args->has("quality", BPTInteger)) {
+        quality = (int)
+            (long long)*((const bp::Integer *)(args->get("quality")));
+    }
+
     // finally, let's pull out the list of transformation actions
     bp::List emptyList;
     bp::List * lPtr = &emptyList;
@@ -149,7 +156,7 @@ BPPInvoke(void * instance, const char * funcName,
     std::string err;
     
     std::string rez =
-        imageproc::ChangeImage(path, sd->tempDir, t, *lPtr, err);
+        imageproc::ChangeImage(path, sd->tempDir, t, *lPtr, quality, err);
     
     if (rez.empty())
     {
@@ -192,6 +199,14 @@ BPArgumentDefinition s_transformFuncArgs[] = {
         "actions",
         "An array of transformations to perform on the input image.",
         BPTList,
+        BP_FALSE
+    },
+    {
+        "quality",
+        "The quality of the output image.  From 0-100.  Lower qualities "
+        "result in faster operations and smaller file sizes, at the cost "
+        "of image quality.",
+        BPTInteger,
         BP_FALSE
     }
 };
