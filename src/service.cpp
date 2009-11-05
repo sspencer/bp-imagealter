@@ -30,11 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ServiceAPI/bperror.h>
-#include <ServiceAPI/bptypes.h>
-#include <ServiceAPI/bpdefinition.h>
-#include <ServiceAPI/bpcfunctions.h>
-#include <ServiceAPI/bppfunctions.h>
+#include "service.hh"
 
 #include "bptypeutil.hh"
 #include "bpurlutil.hh"
@@ -132,19 +128,17 @@ BPPInvoke(void * instance, const char * funcName,
     imageproc::Type t = imageproc::UNKNOWN;
     if (args->has("format")) {
         t = imageproc::pathToType(*(args->get("format")));
-    } else {
-        t = imageproc::pathToType(path);
-    }
 
-    if (t == imageproc::UNKNOWN)
-    {
-        g_bpCoreFunctions->log(
-            BP_ERROR, "can't determine output format");
-        g_bpCoreFunctions->postError(
-            tid, "bp.invalidArguments", "can't determine output format");
-        if (args) delete args;
-        return;
-    } 
+        if (t == imageproc::UNKNOWN)
+        {
+            g_bpCoreFunctions->log(
+                BP_ERROR, "can't determine output format");
+            g_bpCoreFunctions->postError(
+                tid, "bp.invalidArguments", "can't determine output format");
+            if (args) delete args;
+            return;
+        } 
+    }
 
     // finally, let's pull out the list of transformation actions
     bp::List emptyList;

@@ -37,6 +37,8 @@ namespace ft {
     // returns empty on failure
     std::string getPath(std::string tempDir, std::string sourcePath);
 
+    std::string basename(const std::string & path);
+
     // check if that's a regular ol' file.  like one we could compress.
     bool isRegularFile(std::string path);
 

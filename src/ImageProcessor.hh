@@ -52,7 +52,7 @@ namespace imageproc {
 
     /** given an image type, generate a reasonable
      *  contained within */
-    std::string typeToExt(const std::string & typeStr);
+    std::string typeToExt(Type t);
     
     /** perform a series of operations on an image
      *  inPath - the path to an input image

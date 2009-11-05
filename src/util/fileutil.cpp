@@ -51,8 +51,8 @@ std::string dirName(const std::string & path)
 }
 #endif
 
-static
-std::string fileName(const std::string & path)
+std::string
+ft::basename(const std::string & path)
 {
     // /foo/bar -> bar
     // /foo/    -> 
@@ -93,7 +93,7 @@ ft::getPath(std::string tempDir, std::string sourcePath)
     }
     if (!mkdir(tempDir, true)) return std::string();
     // append the filename of sourcePath
-    tempDir = pathAppend(tempDir,fileName(sourcePath));
+    tempDir = pathAppend(tempDir, sourcePath);
     
     return tempDir;
 }
