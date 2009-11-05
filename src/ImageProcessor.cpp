@@ -158,14 +158,21 @@ imageproc::ChangeImage(const std::string & inPath,
     }
     (void) sprintf(images->filename, name.c_str());
     
-
+    // XXX: is there such a function for GM?
+    //
     // "StripImage() strips an image of all profiles and comments."
     // (for size)
     // StripImage(images);
 
-    // Write the image data into string 'output'.
-    std::string output;
-
+    // Now let's go directly from blob to file.  We bypass
+    // GM to-file functions so that we can handle wide filenames
+    // safely on win32 systems.  A superior solution would
+    // be to use GM stream facilities (if they exist)
+    
+    // upon success, will hold path to output file and will be returned to
+    // client
+    std::string rv;
+    
     {
         size_t l = 0;
         void * blob = NULL;
@@ -178,7 +185,37 @@ imageproc::ChangeImage(const std::string & inPath,
         }
         else
         {
-            output.append((const char *) blob, l);
+            g_bpCoreFunctions->log(BP_INFO, "Writing %lu bytes to %s",
+                                   l, name.c_str());
+
+            if (!ft::mkdir(tmpDir, false)) {
+                oError.append("Couldn't create temp dir");
+            } else {
+                std::string outpath = ft::getPath(tmpDir, name);
+                FILE * f = ft::fopen_binary_write(outpath);
+                if (f == NULL) { 
+                    g_bpCoreFunctions->log(
+                        BP_ERROR, "Couldn't open '%s' for writing!",
+                        outpath.c_str());
+                    oError.append("Error saving output image");
+                } else {
+                    size_t wt;
+                    wt = fwrite(blob, sizeof(char), l, f);
+                    fclose(f);
+
+                    if (wt != l) {
+                        g_bpCoreFunctions->log(
+                            BP_ERROR,
+                            "Partial write (%lu/%lu) when writing resultant "
+                            "image '%s'",
+                            wt, l, outpath.c_str());
+                        oError.append("Error saving output image");
+                    } else {
+                        // success!
+                        rv = outpath;
+                    }
+                }
+            }
         }
     }
     
@@ -187,35 +224,5 @@ imageproc::ChangeImage(const std::string & inPath,
     image_info = NULL;
     DestroyExceptionInfo(&exception);
 
-    g_bpCoreFunctions->log(BP_INFO, "Writing %lu bytes to %s",
-                           output.length(), name.c_str());
-
-    if (!ft::mkdir(tmpDir, false)) {
-        oError.append("Couldn't create temp dir");
-        return std::string();
-    }
-
-    std::string outpath = ft::getPath(tmpDir, name);
-    FILE * f = ft::fopen_binary_write(outpath);
-    if (f == NULL) { 
-        g_bpCoreFunctions->log(BP_ERROR, "Couldn't open '%s' for writing!",
-                               outpath.c_str());
-        oError.append("Error saving output image");
-        return std::string();
-    }
-
-    size_t wt;
-    wt = fwrite((void *) output.c_str(), sizeof(char), output.length(), f);
-    fclose(f);
-    
-    if (wt != output.length()) {
-        g_bpCoreFunctions->log(
-            BP_ERROR,
-            "Partial write (%lu/%lu) when writing resultant image '%s'",
-            wt, output.length(), outpath.c_str());
-        oError.append("Error saving output image");
-        return std::string();
-    }
-    
-    return outpath;
+    return rv;
 }
