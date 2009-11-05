@@ -73,8 +73,8 @@ SET(EXT_SRCS
   ${ServiceTools}/CppTools/src/bpurlutil.cpp
 )
 
-SET(SRCS service.cpp ImageProcessor.cpp util/fileutil.cpp)
-SET(HDRS ImageProcessor.hh util/bpsync.hh util/bpthread.hh)
+SET(SRCS service.cpp Transformations.hh ImageProcessor.cpp util/fileutil.cpp)
+SET(HDRS Transformations.cpp ImageProcessor.hh util/bpsync.hh util/bpthread.hh)
 
 # add required OS libs here
 SET(OSLIBS)
