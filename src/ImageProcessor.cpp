@@ -103,8 +103,6 @@ imageproc::ChangeImage(const std::string & inPath,
     Image *images;
     ImageInfo *image_info;
     
-    assert(IsMagickInstantiated());
-    
     GetExceptionInfo(&exception);
     
     // first we read the image
