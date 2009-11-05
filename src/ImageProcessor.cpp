@@ -36,11 +36,52 @@
 
 #include "service.hh"
 
+#include <sstream>
+
+// a map of supported types.
+// written in init, and only read after that (for threading issues)
+struct CaseInsensitiveCompare 
+{
+    bool operator()(const std::string& lhs, const std::string& rhs) const 
+    {
+        return(strcasecmp(lhs.c_str(), rhs.c_str()) < 0);
+    }
+};
+
+typedef std::map<std::string, std::string, CaseInsensitiveCompare> ExtMap;
+static ExtMap s_imgFormats;
+
+const imageproc::Type imageproc::UNKNOWN = NULL;
+
 void
 imageproc::init()
 {
     RegisterStaticModules();
     InitializeMagick(NULL);
+
+    // let's output a startup banner with available image type support
+    ExceptionInfo exception;
+    MagickInfo ** arr = GetMagickInfoArray( &exception );
+    std::stringstream ss;
+    
+    ss << "GraphicsMagick engine initialized with support for: [ ";
+
+    bool first = true;
+    while (arr && *arr) {
+        if (!first) ss << ", ";
+        first = false;
+        ss << (*arr)->name;
+        char * mt = MagickToMime( (*arr)->name );
+        if (mt) {
+            s_imgFormats[(*arr)->name] = std::string(mt);
+            ss << " (" << mt << ")";
+            free(mt);
+        }
+        arr++;
+    }
+    ss << " ]";
+
+    g_bpCoreFunctions->log(BP_INFO, ss.str().c_str());
 }
 
 void
@@ -56,43 +97,29 @@ imageproc::shutdown()
 imageproc::Type
 imageproc::pathToType(const std::string & path)
 {
-    static struct
+    Type rval = UNKNOWN;
+
+    if (!path.empty())
     {
-        const char * ext;
-        Type type;
-    }
-    s_exts[] = {
-        { "jpg", JPEG },
-        { "jpeg", JPEG },
-        { "gif", GIF },
-        { "png", PNG }
-    };
-    
-    for (unsigned int i = 0; i < sizeof(s_exts)/sizeof(s_exts[0]); i++)
-    {
-        if (path.length() >= strlen(s_exts[i].ext)) {
-            std::string ss =
-                path.substr(path.length() - strlen(s_exts[i].ext));
-            if (!strcasecmp(ss.c_str(), s_exts[i].ext)) {
-                return s_exts[i].type;
-            }
+        size_t pos = path.rfind('.');
+        if (pos == std::string::npos) pos = -1;
+        std::string ext = path.substr(pos+1, std::string::npos);
+        
+        ExtMap::const_iterator it = s_imgFormats.find(ext);
+        if (it != s_imgFormats.end()) {
+            rval = it->first.c_str();
         }
     }
-    
-    return UNKNOWN;
+
+    return rval;
 }
 
 std::string
 imageproc::typeToExt(Type t)
 {
-    std::string rv;
-    switch (t) {
-        case JPEG: rv.append("jpg"); break;
-        case PNG: rv.append("png"); break;
-        case GIF: rv.append("gif"); break;
-        case UNKNOWN: break; // noop
-    }
-    return rv;
+    std::string ext;
+    while (t && *t) { ext.append(1, (char) tolower(*t++)); }
+    return ext;
 }
 
 
@@ -124,8 +151,9 @@ imageproc::ChangeImage(const std::string & inPath,
     // XXX: win32 non-ascii paths?
     
     g_bpCoreFunctions->log(
-        BP_INFO, "Contains %lu frames\n",
-        GetImageListLength(images));
+        BP_INFO, "Contains %lu frames, type: %s\n",
+        GetImageListLength(images),
+        images->magick);
 
     if (exception.severity != UndefinedException)
     {
@@ -158,8 +186,9 @@ imageproc::ChangeImage(const std::string & inPath,
     else {
         name.append("img.");
         name.append(typeToExt(outputFormat));
+        (void) sprintf(images->magick, outputFormat);
+        g_bpCoreFunctions->log(BP_INFO, "Output to format: %s", outputFormat);
     }
-    (void) sprintf(images->filename, name.c_str());
     
     // XXX: is there such a function for GM?
     //

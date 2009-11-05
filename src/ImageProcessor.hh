@@ -38,13 +38,15 @@
 
 namespace imageproc {
     
-    typedef enum { UNKNOWN, JPEG, PNG, GIF, } Type;
-
 	/** once per process initialization */
 	void init();
 
 	/** once per process shutdown */
 	void shutdown();
+
+    // image type is a short text string
+    typedef const char * Type;
+    extern const Type UNKNOWN;
 
     /** given a path, make a best guess at what kind of image is
      *  contained within */
@@ -57,7 +59,7 @@ namespace imageproc {
     /** perform a series of operations on an image
      *  inPath - the path to an input image
      *  tmpdir - a directory where the result should be stored
-     *  outputFormat - the type of image to return
+     *  outputFormat - the type of image to return (short string rep)
      *  transformations - a list of transformations to perform in order
      *  error - a verbose developer readable english error
      *  \returns .empty() on error, otherwise the path to resulting image

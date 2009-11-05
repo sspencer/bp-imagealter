@@ -86,6 +86,8 @@ BPPDestroy(void * instance)
 static void
 BPPShutdown(void)
 {
+    // shutdown the GraphicsMagick engine.  vroom.
+    imageproc::shutdown();
 }
 
 static void
@@ -235,6 +237,10 @@ BPPInitialize(const BPCFunctionTable * bpCoreFunctions,
     };
 
     g_bpCoreFunctions = bpCoreFunctions;
+
+    // initialize the GraphicsMagick engine.  vroom.
+    imageproc::init();
+
     return &s_serviceDef;
 }
 
