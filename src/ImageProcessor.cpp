@@ -61,7 +61,7 @@ imageproc::pathToType(const std::string & path)
         { "jpg", JPEG },
         { "jpeg", JPEG },
         { "gif", GIF },
-        { "gif", PNG }
+        { "png", PNG }
     };
     
     for (unsigned int i = 0; i < sizeof(s_exts)/sizeof(s_exts[0]); i++)
@@ -69,6 +69,7 @@ imageproc::pathToType(const std::string & path)
         if (path.length() >= strlen(s_exts[i].ext)) {
             std::string ss =
                 path.substr(path.length() - strlen(s_exts[i].ext));
+            // XXX: nocasecmp
             if (!ss.compare(std::string(s_exts[i].ext))) {
                 return s_exts[i].type;
             }
