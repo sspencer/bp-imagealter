@@ -31,10 +31,34 @@ static Image * solarizeTransform(const Image * inImage,
     return i;
 }
 
+static Image * rotateTransform(const Image * inImage,
+                               const bp::Object * args,
+                               int quality, std::string &oError)
+{
+    double degrees = 90;
+    if (args != NULL) {
+        if (args->type() == BPTDouble) {
+            degrees = (double) *args;
+        } else if (args->type() == BPTInteger) {
+            degrees = (double)((long long)(*args));
+        } else {
+            oError.append("rotate accepts a single optional numeric argument");
+            return NULL;
+        }
+    }
+    
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = RotateImage( inImage, degrees, &exception );
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
 
 static trans::Transformation s_transMap[] = {
     { "noop", false, false, noopTransform },
-    { "solarize", false, false, solarizeTransform }
+    { "solarize", false, false, solarizeTransform },
+    { "rotate", true, false, rotateTransform },    
 };
 
 unsigned int
