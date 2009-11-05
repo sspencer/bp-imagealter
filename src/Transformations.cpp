@@ -1,5 +1,6 @@
 #include "Transformations.hh"
 
+
 static Image * noopTransform(const Image * inImage,
                              const bp::Object * args,
                              int quality, std::string &oError)
@@ -11,8 +12,29 @@ static Image * noopTransform(const Image * inImage,
     return i;
 }
 
+
+static Image * solarizeTransform(const Image * inImage,
+                                 const bp::Object * args,
+                                 int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if (!i) {
+        oError.append("couldn't clone image :/");        
+    } else if (!SolarizeImage(i, 1.0)) {
+        oError.append("error during solarization occured");
+        DestroyImage(i);
+        i = NULL;
+    }
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
 static trans::Transformation s_transMap[] = {
-    { "noop", false, false, noopTransform }
+    { "noop", false, false, noopTransform },
+    { "solarize", false, false, solarizeTransform }
 };
 
 unsigned int
