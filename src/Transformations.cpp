@@ -265,7 +265,6 @@ static Image * grayscaleTransform(const Image * inImage,
     return i;
 }
 
-
 static Image * psychodelicTransform(const Image * inImage,
                                     const bp::Object * args,
                                     int quality, std::string &oError)
@@ -289,8 +288,38 @@ static Image * sepiaTransform(const Image * inImage,
                               const bp::Object * args,
                               int quality, std::string &oError)
 {
-    // XXX: write me
-    return NULL;
+    ExceptionInfo exception;
+    QuantizeInfo qi;
+    GetExceptionInfo(&exception);
+    GetQuantizeInfo(&qi);
+    qi.colorspace = GRAYColorspace;
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+
+    // sepia pixelpacket
+    PixelPacket p;
+    p.red = 112;
+    p.green = 66;
+    p.blue = 20;
+    p.opacity = 0;
+
+    if (!i) {
+        oError.append("couldn't clone image :/");        
+    } else if (!QuantizeImage(&qi, i)) {
+        oError.append("error during sepia quanitzation occured");
+        DestroyImage(i);
+        i = NULL;
+    } 
+    
+    if (i) {
+        Image * colorized = ColorizeImage(i, "50%", p, &exception);
+        DestroyImage(i);
+        i = colorized;
+        if (!i) oError.append("error during sepia colorization occured");
+    }
+                                          
+//    DestroyQuantizeInfo(&qi);
+    DestroyExceptionInfo(&exception);
+    return i;
 }
 
 
