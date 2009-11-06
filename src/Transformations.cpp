@@ -152,12 +152,39 @@ static Image * scaleTransform(const Image * inImage,
     return img;
 }
 
+
+static Image * grayscaleTransform(const Image * inImage,
+                                  const bp::Object * args,
+                                  int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    QuantizeInfo qi;
+    GetExceptionInfo(&exception);
+    GetQuantizeInfo(&qi);
+
+    qi.colorspace = GRAYColorspace;
+
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if (!i) {
+        oError.append("couldn't clone image :/");        
+    } else if (!QuantizeImage(&qi, i)) {
+        oError.append("error during greyscale occured");
+        DestroyImage(i);
+        i = NULL;
+    }
+//    DestroyQuantizeInfo(&qi);
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
 static trans::Transformation s_transMap[] = {
     { "noop", false, false, noopTransform },
     { "solarize", false, false, solarizeTransform },
     { "rotate", true, false, rotateTransform },
     { "scale", true, true, scaleTransform },    
-    { "oilpaint", true, true, oilpaintTransform }    
+    { "oilpaint", true, true, oilpaintTransform },    
+    { "grayscale", true, true, grayscaleTransform },    
+    { "greyscale", true, true, grayscaleTransform }    
 };
 
 unsigned int
