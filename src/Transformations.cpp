@@ -69,6 +69,29 @@ static Image * rotateTransform(const Image * inImage,
 }
 
 
+static Image * swirlTransform(const Image * inImage,
+                              const bp::Object * args,
+                              int quality, std::string &oError)
+{
+    double degrees = 90;
+    if (args != NULL) {
+        if (args->type() == BPTDouble) {
+            degrees = (double) *args;
+        } else if (args->type() == BPTInteger) {
+            degrees = (double)((long long)(*args));
+        } else {
+            oError.append("swirl accepts a single optional numeric argument");
+            return NULL;
+        }
+    }
+    
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = SwirlImage( inImage, degrees, &exception );
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
 
 static Image * scaleTransform(const Image * inImage,
                               const bp::Object * args,
@@ -178,13 +201,14 @@ static Image * grayscaleTransform(const Image * inImage,
 }
 
 static trans::Transformation s_transMap[] = {
+    { "grayscale", true, true, grayscaleTransform },    
+    { "greyscale", true, true, grayscaleTransform },    
     { "noop", false, false, noopTransform },
-    { "solarize", false, false, solarizeTransform },
+    { "oilpaint", true, true, oilpaintTransform },    
     { "rotate", true, false, rotateTransform },
     { "scale", true, true, scaleTransform },    
-    { "oilpaint", true, true, oilpaintTransform },    
-    { "grayscale", true, true, grayscaleTransform },    
-    { "greyscale", true, true, grayscaleTransform }    
+    { "solarize", false, false, solarizeTransform },
+    { "swirl", true, true, swirlTransform }    
 };
 
 unsigned int
