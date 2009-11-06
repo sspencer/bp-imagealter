@@ -176,6 +176,71 @@ static Image * scaleTransform(const Image * inImage,
 }
 
 
+static Image * cropTransform(const Image * inImage,
+                             const bp::Object * args,
+                             int quality, std::string &oError)
+{
+    // first we'll validate and extract parameters
+    double cropParams[4];
+    assert(args != NULL);
+    
+    if (!args || args->type() != BPTList ||
+        ((const bp::List *) args)->size() != 4)
+    {
+        oError.append("crop accepts an array of four floating point numbers");
+        return NULL;
+    }
+
+    const bp::List * l = (const bp::List *) args;
+    for (unsigned int i = 0; i < 4; i++)
+    {
+        if  (l->value(i)->type() != BPTDouble) {
+            oError.append("crop accepts an array of four "
+                          "floating point numbers");
+            return NULL;
+        }
+
+        cropParams[i] = (double) *(l->value(i));
+        if (cropParams[i] < 0.0) cropParams[i] = 0.0;
+        if (cropParams[i] > 1.0) cropParams[i] = 1.0;
+    }
+
+    // validate arguments
+    if (cropParams[0] >= cropParams[2] || cropParams[1] >= cropParams[3]) {
+        oError.append("meaningless crop parameters (x1/y1 may not be greater"
+                      " than x2/y2)");
+        return NULL;
+    }
+    
+
+    // cropParams now contains x1, y1, x2, y2 in relative cordinates,
+    // with origin at top left of image.  We'll use that information to
+    // populate a RectangleInfo structure
+
+    // extract existing image size
+    unsigned int x = inImage->magick_columns;
+    unsigned int y = inImage->magick_rows;
+
+    RectangleInfo ri;
+    ri.height = y * (cropParams[3] - cropParams[1]);
+    ri.width = x * (cropParams[2] - cropParams[0]);
+    ri.x = x * cropParams[0];
+    ri.y = y * cropParams[1];
+
+    g_bpCoreFunctions->log(
+        BP_INFO,
+        "Cropping image (%lux%lu): %lux%lu starting at %lu,%lu",
+        x, y, ri.width, ri.height, ri.x, ri.y);
+    
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * img = CropImage( inImage, &ri, &exception );
+    DestroyExceptionInfo(&exception);
+
+    return img;
+}
+
+
 static Image * grayscaleTransform(const Image * inImage,
                                   const bp::Object * args,
                                   int quality, std::string &oError)
@@ -200,15 +265,48 @@ static Image * grayscaleTransform(const Image * inImage,
     return i;
 }
 
+
+static Image * psychodelicTransform(const Image * inImage,
+                                    const bp::Object * args,
+                                    int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if (!i) {
+        oError.append("couldn't clone image :/");        
+    } else if (!CycleColormapImage(i, 8)) {
+        oError.append("error during psychodlic occured");
+        DestroyImage(i);
+        i = NULL;
+    }
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
+static Image * sepiaTransform(const Image * inImage,
+                              const bp::Object * args,
+                              int quality, std::string &oError)
+{
+    // XXX: write me
+    return NULL;
+}
+
+
 static trans::Transformation s_transMap[] = {
+    { "crop", true, true, cropTransform },    
     { "grayscale", true, true, grayscaleTransform },    
     { "greyscale", true, true, grayscaleTransform },    
     { "noop", false, false, noopTransform },
     { "oilpaint", true, true, oilpaintTransform },    
+    { "psychodelic", false, false, psychodelicTransform },
     { "rotate", true, false, rotateTransform },
     { "scale", true, true, scaleTransform },    
+    { "sepia", true, true, sepiaTransform },    
     { "solarize", false, false, solarizeTransform },
     { "swirl", true, true, swirlTransform }    
+    
 };
 
 unsigned int
