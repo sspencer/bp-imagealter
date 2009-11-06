@@ -33,6 +33,18 @@ static Image * solarizeTransform(const Image * inImage,
     return i;
 }
 
+static Image * oilpaintTransform(const Image * inImage,
+                                 const bp::Object * args,
+                                 int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = OilPaintImage( inImage, 2.0, &exception );
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
 static Image * rotateTransform(const Image * inImage,
                                const bp::Object * args,
                                int quality, std::string &oError)
@@ -55,6 +67,7 @@ static Image * rotateTransform(const Image * inImage,
     DestroyExceptionInfo(&exception);
     return i;
 }
+
 
 
 static Image * scaleTransform(const Image * inImage,
@@ -139,12 +152,12 @@ static Image * scaleTransform(const Image * inImage,
     return img;
 }
 
-
 static trans::Transformation s_transMap[] = {
     { "noop", false, false, noopTransform },
     { "solarize", false, false, solarizeTransform },
     { "rotate", true, false, rotateTransform },
     { "scale", true, true, scaleTransform },    
+    { "oilpaint", true, true, oilpaintTransform }    
 };
 
 unsigned int
