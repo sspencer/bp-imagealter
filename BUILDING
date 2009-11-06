@@ -1,0 +1,61 @@
+OSX:
+
+1. download and unpack the latest bpsdk
+  http://browserplus.yahoo.com/developer/service/sdk/dist/bpsdk_2.4.17-Darwin-i386.tgz
+2. next to it checkout out the bp-imagealter service source
+3. git clone git://github.com/lloyd/bp-imagealter.git
+4. cd bp-imagealter
+5. git submodule init
+6. git submodule update
+7. cd external
+8. ./build.rb # takes about 10 mins
+9. cd ../src
+10. mkdir build
+11. cd build
+12. cmake ..
+13. make 
+
+You've done it!  now bp-imagealter/src/build/ImageAlter contains the 
+build service.  For your present directory you can run it:
+
+../../../bpsdk/bin/ServiceRunner ImageAlter
+> a
+> describe
+> ^D
+
+yay!  now you're ready to run tests:
+
+14. cd ../../test/
+15. ./runtests.rb 
+
+[lth@lappro test] $ ./runtests.rb 
+Running ImageAlter tests
+anim_gif_to_jpg: ok. (took 0.006649s)
+crop: ok. (took 0.144857s)
+ext_case_test: ok. (took 0.003098s)
+grayscale: ok. (took 0.043621s)
+negative_rotate: ok. (took 0.046529s)
+noop_action_test: ok. (took 0.004768s)
+oilpaint: ok. (took 0.130003s)
+psychodelic: ok. (took 0.519686s)
+rotate_180: ok. (took 0.04351s)
+rotate_45: ok. (took 0.207572s)
+rotate_900: ok. (took 0.044495s)
+rotate_and_thumbnail: ok. (took 0.232901s)
+rotate_no_args: ok. (took 0.043164s)
+sepia: fail (no output file for test! [left result in sepia.got])
+solarize: ok. (took 0.049198s)
+swirl: ok. (took 0.10264s)
+thumbnail: ok. (took 0.304025s)
+thumbnail_and_rotate: ok. (took 0.053089s)
+to_gif: ok. (took 0.484645s)
+to_png: ok. (took 0.088655s)
+19/20 tests completed successfully
+
+oooh.  sepia failed!  notice that cases/sepia.got is actually a jpg file.
+try:
+
+cp cases/sepia.got /tmp/x.jpg && open /tmp/x.jpg
+
+awww, it's sophie!
+
