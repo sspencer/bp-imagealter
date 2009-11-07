@@ -1,0 +1,5 @@
+{
+  "file":    "soph.png",
+  "format":  "jpg",
+  "actions": [ "despeckle" ]
+}

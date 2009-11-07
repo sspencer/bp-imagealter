@@ -15,6 +15,30 @@ static Image * noopTransform(const Image * inImage,
 }
 
 
+static Image * despeckleTransform(const Image * inImage,
+                                  const bp::Object * args,
+                                  int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = DespeckleImage(inImage, &exception);
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
+static Image * enhanceTransform(const Image * inImage,
+                                const bp::Object * args,
+                                int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = EnhanceImage(inImage, &exception);
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
 static Image * solarizeTransform(const Image * inImage,
                                  const bp::Object * args,
                                  int quality, std::string &oError)
@@ -390,6 +414,8 @@ static Image * sepiaTransform(const Image * inImage,
 static trans::Transformation s_transMap[] = {
     { "contrast", true, false, contrastTransform },    
     { "crop", true, true, cropTransform },    
+    { "despeckle", false, false, despeckleTransform },
+    { "enhance", false, false, enhanceTransform },    
     { "grayscale", true, true, grayscaleTransform },    
     { "greyscale", true, true, grayscaleTransform },    
     { "negate", false, false, negateTransform },
