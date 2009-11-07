@@ -37,17 +37,40 @@ static Image * contrastTransform(const Image * inImage,
                                  const bp::Object * args,
                                  int quality, std::string &oError)
 {
+    int contrast = 1;
+    
+    if (args) {
+        if (args->type() != BPTInteger) {
+            oError.append("contrast takes a single numeric argument between "
+                          "-10 and 10");
+            return NULL;
+        }
+        contrast = (int) ((long long) *args);
+    }
+    
+
     ExceptionInfo exception;
     GetExceptionInfo(&exception);
     Image * i = CloneImage(inImage, 0, 0, 1, &exception);
     if (!i) {
         oError.append("couldn't clone image :/");        
-    } else if (!ContrastImage(i, 1)) {
-        oError.append("error during contrast occured");
-        DestroyImage(i);
-        i = NULL;
+    } else {
+        int sharpen = 1;
+        if (contrast < 0) {
+            sharpen = 0;
+            contrast *= -1;
+        }
+        if (contrast > 10) contrast = 10;
+        for (int x = 0; x < contrast; x++) {
+            if (!ContrastImage(i, sharpen)) {
+                oError.append("error during contrast occured");
+                DestroyImage(i);
+                i = NULL;
+                break;
+            }
+        }
     }
-
+    
     DestroyExceptionInfo(&exception);
     return i;
 }
@@ -277,10 +300,11 @@ static Image * grayscaleTransform(const Image * inImage,
     if (!i) {
         oError.append("couldn't clone image :/");        
     } else if (!QuantizeImage(&qi, i)) {
-        oError.append("error during greyscale occured");
+        oError.append("error during grayscale quantize phase occured");
         DestroyImage(i);
         i = NULL;
     }
+
 //    DestroyQuantizeInfo(&qi);
     DestroyExceptionInfo(&exception);
     return i;
@@ -345,7 +369,7 @@ static Image * sepiaTransform(const Image * inImage,
 
 
 static trans::Transformation s_transMap[] = {
-    { "contrast", false, false, contrastTransform },    
+    { "contrast", true, false, contrastTransform },    
     { "crop", true, true, cropTransform },    
     { "grayscale", true, true, grayscaleTransform },    
     { "greyscale", true, true, grayscaleTransform },    

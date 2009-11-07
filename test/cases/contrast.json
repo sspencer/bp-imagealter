@@ -1,5 +1,5 @@
 {
   "file":    "soph.png",
   "format":  "jpeg",
-  "actions": [ "contrast" ]
+  "actions": [ { "contrast": 10 } ]
 }
