@@ -33,6 +33,27 @@ static Image * solarizeTransform(const Image * inImage,
     return i;
 }
 
+static Image * contrastTransform(const Image * inImage,
+                                 const bp::Object * args,
+                                 int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if (!i) {
+        oError.append("couldn't clone image :/");        
+    } else if (!ContrastImage(i, 1)) {
+        oError.append("error during contrast occured");
+        DestroyImage(i);
+        i = NULL;
+    }
+
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
+
 static Image * oilpaintTransform(const Image * inImage,
                                  const bp::Object * args,
                                  int quality, std::string &oError)
@@ -324,6 +345,7 @@ static Image * sepiaTransform(const Image * inImage,
 
 
 static trans::Transformation s_transMap[] = {
+    { "contrast", false, false, contrastTransform },    
     { "crop", true, true, cropTransform },    
     { "grayscale", true, true, grayscaleTransform },    
     { "greyscale", true, true, grayscaleTransform },    
