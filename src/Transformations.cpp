@@ -329,6 +329,25 @@ static Image * psychodelicTransform(const Image * inImage,
 }
 
 
+static Image * negateTransform(const Image * inImage,
+                               const bp::Object * args,
+                               int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if (!i) {
+        oError.append("couldn't clone image :/");        
+    } else if (!NegateImage(i, 0)) {
+        oError.append("error during negate occured");
+        DestroyImage(i);
+        i = NULL;
+    }
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
 static Image * sepiaTransform(const Image * inImage,
                               const bp::Object * args,
                               int quality, std::string &oError)
@@ -373,6 +392,7 @@ static trans::Transformation s_transMap[] = {
     { "crop", true, true, cropTransform },    
     { "grayscale", true, true, grayscaleTransform },    
     { "greyscale", true, true, grayscaleTransform },    
+    { "negate", false, false, negateTransform },
     { "noop", false, false, noopTransform },
     { "oilpaint", true, true, oilpaintTransform },    
     { "psychodelic", false, false, psychodelicTransform },
