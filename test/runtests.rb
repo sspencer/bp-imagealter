@@ -11,8 +11,33 @@ rescue LoadError
   require "json/json.rb"
 end
 
-sr = File.join(File.dirname(__FILE__), "..", "..", "bpsdk", "bin",
-               "ServiceRunner")
+# attempt to find the ServiceRunner binary, a part of the BrowserPlus
+# SDK. (http://browserplus.yahoo.com)
+def findServiceRunner
+  # first, try relative to this repo 
+  srBase = File.join(File.dirname(__FILE__), "..", "..", "bpsdk", "bin")
+  candidates = [
+   File.join(srBase, "ServiceRunner.exe"),
+   File.join(srBase, "ServiceRunner"),             
+  ]
+  
+  # now use BPSDK_PATH env var if present
+  if ENV.has_key? 'BPSDK_PATH'
+    candidates.push File.join(ENV['BPSDK_PATH'], "bin", "ServiceRunner.exe")
+    candidates.push File.join(ENV['BPSDK_PATH'], "bin", "ServiceRunner")
+  end
+
+  if ENV.has_key? 'SERVICERUNNER_PATH'
+    candidates.push(ENV['SERVICERUNNER_PATH'])
+  end
+
+  candidates.each { |p|
+    return p if File.executable? p
+  }
+  nil
+end
+
+sr = findServiceRunner
 
 clet = File.join(File.dirname(__FILE__), "..", "src", "build", "ImageAlter")
 
@@ -20,11 +45,15 @@ clet = File.join(File.dirname(__FILE__), "..", "src", "build", "ImageAlter")
 raise "can't execute ServiceRunner: #{sr}" if !File.executable? sr
 raise "can't find built service to test: #{clet}" if !File.directory? clet
 
-def mypread(pio, timeo, returnAfterInput = false)
+# perform a blocking read.  the third parameter is a magic duck:
+# 1. if it evaluates to false, we'll block the full timeo
+# 2. if it is a pattern, we'll  block until either timeo expires OR
+#    we get output which matches the pattern
+def mypread(pio, timeo, lookFor = false)
   output = String.new
   while nil != select( [ pio ], nil, nil, timeo )  
     output += pio.sysread(1024) 
-    break if output.length && returnAfterInput 
+    break if output.length && lookFor && output =~ lookFor
   end
   output
 end
@@ -34,9 +63,9 @@ rv = 0
 IO.popen("#{sr} #{clet}", "w+") do |srp|
   puts "Running ImageAlter tests"
   # discard startup output
-  mypread(srp, 0.5, true)
+  mypread(srp, 0.5, /service initialized/)
   srp.syswrite "allocate\n"
-  mypread(srp, 0.5, true)
+  mypread(srp, 0.5, /allocated/)
 
   tests = 0
   successes = 0
@@ -51,7 +80,7 @@ IO.popen("#{sr} #{clet}", "w+") do |srp|
     p = File.join(File.dirname(__FILE__), "test_images", json["file"])
     p = File.expand_path(p)
     # now convert p into a file url
-    json["file"] = "file://" + p
+    json["file"] = ((p[0] == "/") ? "file://" : "file:///" ) + p
     cmd = JSON.generate(json).gsub("'", "\\'")
     # NOTE: the appended "show" command.  Service runner as of
     #       2.4.20 has a bug where it doesn't flush output.  So the
@@ -62,7 +91,7 @@ IO.popen("#{sr} #{clet}", "w+") do |srp|
     
     took = Time.now
     srp.syswrite "inv transform '#{cmd}'\nshow\n"
-    rez = mypread(srp, 5.0, true)
+    rez = mypread(srp, 5.0, /allocated:/)
     took = Time.now - took
 
     # now rez is of the form >{ "file": "file:///foo.x" } 1 instance...<
@@ -71,8 +100,9 @@ IO.popen("#{sr} #{clet}", "w+") do |srp|
     # path, then we'll give up and call it a failure
     imgGot = nil
     begin
-      robj = JSON.parse(rez.sub(/\}.*$/m, '}'))
+      robj = JSON.parse(rez.sub(/^.*\{/m, '{').sub(/\}.*$/m, '}'))
       gotImgPath = URI.parse(robj['file']).path
+      gotImgPath.sub!(/^\//, "") if gotImgPath =~ /^\/[a-zA-Z]:/ 
       imgGot = File.open(gotImgPath, "rb") { |oi| oi.read }
       wantImgPath = File.join(File.dirname(f),
                               File.basename(f, ".json") + ".out")
