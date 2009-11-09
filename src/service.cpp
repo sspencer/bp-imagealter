@@ -208,11 +208,13 @@ BPPInitialize(const BPCFunctionTable * bpCoreFunctions,
 
         bp::service::Argument file, actions, format, quality;
         file.setName("file");
+        file.setRequired(true);
         file.setType(bp::service::Argument::Path);
         file.setDocString("The image to transform.");
         as.push_back(file);
 
         format.setName("format");
+        format.setRequired(false);
         format.setType(bp::service::Argument::String);
         format.setDocString("The format of the output image.  "
                             "Default is to output in the same "
@@ -222,6 +224,7 @@ BPPInitialize(const BPCFunctionTable * bpCoreFunctions,
         as.push_back(format);
 
         quality.setName("quality");
+        quality.setRequired(false);
         quality.setType(bp::service::Argument::Integer);
         quality.setDocString("The quality of the output image.  "
                              "From 0-100.  Lower qualities "
@@ -230,6 +233,7 @@ BPPInitialize(const BPCFunctionTable * bpCoreFunctions,
         as.push_back(quality);
 
         actions.setName("actions");
+        actions.setRequired(false);
         actions.setType(bp::service::Argument::List);
         // generate documentation automatically.
         std::stringstream ss;
