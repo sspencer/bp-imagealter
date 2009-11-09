@@ -103,6 +103,20 @@ CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/manifest.json"
 ADD_CUSTOM_COMMAND(TARGET ${serviceName} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
                            \"${loc}\" \"${outputDir}\")
+
+# copy in magic.mgk - an xml lookup table that allows graphics magick
+# to quickly identify files based on content, and is required for GM
+# to work
+SET(pathToMagicMgk 
+   "${CMAKE_CURRENT_SOURCE_DIR}/../external/built/share/GraphicsMagick-1.3.7/config/magic.mgk")
+IF (NOT EXISTS ${pathToMagicMgk})
+  MESSAGE(FATAL_ERROR "Can't find 'magick.mgk' file at '${pathToMagicMgk}'")
+ENDIF ()
+
+ADD_CUSTOM_COMMAND(
+  TARGET ${serviceName} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${pathToMagicMgk}\" \"${outputDir}\")
+
 IF (APPLE)
   ADD_CUSTOM_COMMAND(TARGET ${serviceName} POST_BUILD
                      COMMAND strip -x \"${outputDir}/${ServiceLibrary}\")
