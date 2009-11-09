@@ -200,7 +200,17 @@ Image * runTransformations(Image * image,
         }
 
         // are the arguments correct?
-        // XXX
+        if (t->requiresArgs && !args) {
+            oError.append(command);
+            oError.append(" missing required argument");
+            break;
+        }
+
+        if (!t->acceptsArgs && args) {        
+            oError.append(command);
+            oError.append(" doesn't accept arguments");
+            break;
+        }
 
         {
             Image * newImage = t->transform(image, args, quality, oError);
