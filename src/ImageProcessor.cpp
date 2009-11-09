@@ -220,6 +220,68 @@ Image * runTransformations(Image * image,
     return image;
 }
 
+static Image *
+IP_ReadImageFile(const ImageInfo * image_info,
+                 const std::string & path,
+                 ExceptionInfo * exception)
+ {
+    if (path.empty()) return NULL;
+    
+    FILE * f = ft::fopen_binary_read(path);    
+    if (!f) {
+        g_bpCoreFunctions->log(
+            BP_ERROR, "Couldn't open file for reading: %s", path.c_str());
+        return NULL;
+    }
+
+    // determine length of file
+    int sought = fseek(f, 0L, SEEK_END);
+	long len = ftell(f);
+    (void) fseek(f, 0L, SEEK_SET);
+
+    if (sought || len <= 0) {
+        g_bpCoreFunctions->log(
+            BP_ERROR, "Couldn't determine file length: %s", path.c_str());
+        fclose(f);
+        return NULL;
+    }
+
+    void * img = malloc(len);
+    if (!img) {
+        g_bpCoreFunctions->log(
+            BP_ERROR, "memory allocation failed (%ld bytes) when trying to "
+            "read image", len);
+        fclose(f);
+        return NULL;
+    }
+
+    g_bpCoreFunctions->log(
+        BP_INFO, "Attempting to read %ld bytes from '%s'",
+        len, path.c_str());
+
+    size_t rd = fread(img, sizeof(unsigned char), len, f);
+
+    fclose(f); // done with this file handle
+    
+    if ((long) rd != len) {
+        g_bpCoreFunctions->log(
+            BP_ERROR, "Partial read detected, got %ld of %ld bytes",
+            rd, len);
+        free(img);
+        return NULL;
+    }
+
+    // now convert it into a GM image 
+    Image * i = BlobToImage(image_info, img, len, exception);
+
+    g_bpCoreFunctions->log(BP_ERROR, "read img: %p", i);
+
+    free(img);
+
+    return i;
+}
+
+
 std::string
 imageproc::ChangeImage(const std::string & inPath,
                        const std::string & tmpDir,
@@ -233,21 +295,33 @@ imageproc::ChangeImage(const std::string & inPath,
     ImageInfo *image_info;
     
     GetExceptionInfo(&exception);
-    
-    // first we read the image
-    g_bpCoreFunctions->log(
-        BP_INFO, "Attempting to read image: %s",
-        inPath.c_str());
-
     image_info = CloneImageInfo((ImageInfo *) NULL);
-    (void) strcpy(image_info->filename, inPath.c_str());
-    images = ReadImage(image_info, &exception);
 
-    // XXX: win32 non-ascii paths?
+    // first we read the image
+    if (exception.severity != UndefinedException)
+    {
+		if (exception.reason)
+            g_bpCoreFunctions->log(BP_ERROR, "after: %s\n",
+                                   exception.reason);
+		if (exception.description)
+            g_bpCoreFunctions->log(BP_ERROR, "after: %s\n",
+                                   exception.description);
+		CatchException(&exception);
+    }
+
+
+	(void) strcpy(image_info->filename, inPath.c_str());
+    images = IP_ReadImageFile(image_info, inPath, &exception);
     
     if (exception.severity != UndefinedException)
     {
-        CatchException(&exception);
+		if (exception.reason)
+            g_bpCoreFunctions->log(BP_ERROR, "after: %s\n",
+                                   exception.reason);
+		if (exception.description)
+            g_bpCoreFunctions->log(BP_ERROR, "after: %s\n",
+                                   exception.description);
+		CatchException(&exception);
     }
     
     if (!images)
