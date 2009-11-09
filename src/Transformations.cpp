@@ -440,7 +440,7 @@ static trans::Transformation s_transMap[] = {
         "accepts no arguments "
     },    
     {
-        "grayscale", true, true, grayscaleTransform,
+        "grayscale", false, false, grayscaleTransform,
         "remove the color from an image, accepts no arguments"
     },    
     {
@@ -456,7 +456,7 @@ static trans::Transformation s_transMap[] = {
         "do nothing.  may be applied multiple times.  still does nothing."
     },
     {
-        "oilpaint", true, true, oilpaintTransform,
+        "oilpaint", false, false, oilpaintTransform,
         "an effect that will make the image look like an oil painting, "
         "accepts no arguments"
     },    
