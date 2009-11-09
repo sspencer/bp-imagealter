@@ -368,12 +368,6 @@ imageproc::ChangeImage(const std::string & inPath,
         g_bpCoreFunctions->log(BP_INFO, "Output to format: %s", outputFormat);
     }
     
-    // XXX: is there such a function for GM?
-    //
-    // "StripImage() strips an image of all profiles and comments."
-    // (for size)
-    // StripImage(images);
-
     // Now let's go directly from blob to file.  We bypass
     // GM to-file functions so that we can handle wide filenames
     // safely on win32 systems.  A superior solution would
