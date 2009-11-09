@@ -39,6 +39,8 @@
 
 #include <sstream>
 
+#include <assert.h>
+
 #ifdef WIN32
 #define strcasecmp _stricmp
 #endif
@@ -243,11 +245,6 @@ imageproc::ChangeImage(const std::string & inPath,
 
     // XXX: win32 non-ascii paths?
     
-    g_bpCoreFunctions->log(
-        BP_INFO, "Contains %lu frames, type: %s\n",
-        GetImageListLength(images),
-        images->magick);
-
     if (exception.severity != UndefinedException)
     {
         CatchException(&exception);
@@ -261,7 +258,12 @@ imageproc::ChangeImage(const std::string & inPath,
         DestroyExceptionInfo(&exception);
         return std::string();
     }
-    
+
+	g_bpCoreFunctions->log(
+        BP_INFO, "Image contains %lu frames, type: %s\n",
+        GetImageListLength(images),
+        images->magick);
+
     // set quality
     if (quality > 100) quality = 100;
     if (quality < 0) quality = 0;
