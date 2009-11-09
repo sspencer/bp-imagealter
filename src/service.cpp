@@ -33,12 +33,14 @@
 #include "service.hh"
 #include "bptypeutil.hh"
 #include "bpurlutil.hh"
+#include "bpservicedescription.hh"
 
 #include "util/bpsync.hh"
 #include "util/bpthread.hh"
 #include "util/fileutil.hh"
 
 #include "ImageProcessor.hh"
+#include "Transformations.hh"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,6 +49,7 @@
 
 #include <iostream>
 #include <list>
+#include <sstream>
 
 const BPCFunctionTable * g_bpCoreFunctions = NULL;
 
@@ -182,65 +185,86 @@ BPPInvoke(void * instance, const char * funcName,
     return;
 }
 
-BPArgumentDefinition s_transformFuncArgs[] = {
-    {
-        "file",
-        "The image to transform.",
-        BPTPath,
-        BP_TRUE
-    },
-    {
-        "format",
-        "The format of the output image.  Default is to output in the same "
-        "format as the input image.",
-        BPTString,
-        BP_FALSE
-    },
-    {
-        "actions",
-        "An array of transformations to perform on the input image.",
-        BPTList,
-        BP_FALSE
-    },
-    {
-        "quality",
-        "The quality of the output image.  From 0-100.  Lower qualities "
-        "result in faster operations and smaller file sizes, at the cost "
-        "of image quality.",
-        BPTInteger,
-        BP_FALSE
-    }
-};
-
-
-static BPFunctionDefinition s_functions[] = {
-    {
-        "transform",
-        "Perform a set of transformations on an input image.",
-        sizeof(s_transformFuncArgs)/sizeof(s_transformFuncArgs[0]),
-        s_transformFuncArgs
-    }
-};
-
 const BPCoreletDefinition *
 BPPInitialize(const BPCFunctionTable * bpCoreFunctions,
               const BPElement * parameterMap)
 {
-    // a description of this service
-    static BPCoreletDefinition s_serviceDef = {
-        "ImageAlter",
-        4, 0, 0,
-        "Implements client side Image manipulation",
-        sizeof(s_functions)/sizeof(s_functions[0]),
-        s_functions
-    };
+    static bool s_initd = false;
+    static bp::service::Description s_desc;
 
+    if (!s_initd) {
+        s_initd = true;
+        s_desc.setName("ImageAlter");
+        s_desc.setMajorVersion(4);
+        s_desc.setMinorVersion(0);
+        s_desc.setMicroVersion(0);
+        s_desc.setDocString("Implements client side Image manipulation");
+
+        // let's add functions, start with 'transform'
+        std::list<bp::service::Function> fs;
+
+        // arguments 
+        std::list<bp::service::Argument> as;
+
+        bp::service::Argument file, actions, format, quality;
+        file.setName("file");
+        file.setType(bp::service::Argument::Path);
+        file.setDocString("The image to transform.");
+        as.push_back(file);
+
+        format.setName("format");
+        format.setType(bp::service::Argument::String);
+        format.setDocString("The format of the output image.  "
+                            "Default is to output in the same "
+                            "format as the input image.  A string, one of: "
+                            "jpg, gif, or png");
+        
+        as.push_back(format);
+
+        quality.setName("quality");
+        quality.setType(bp::service::Argument::Integer);
+        quality.setDocString("The quality of the output image.  "
+                             "From 0-100.  Lower qualities "
+                             "result in faster operations and smaller file "
+                             "sizes, at the cost of image quality.");
+        as.push_back(quality);
+
+        actions.setName("actions");
+        actions.setType(bp::service::Argument::List);
+        // generate documentation automatically.
+        std::stringstream ss;
+        ss << "An array of actions to perform.  Each action is either a "
+           << "string (i.e. { actions: [ 'solarize' ] }) , or an object with "
+           << "a single property, where the property name is the action "
+           << "to perform, and the property value is the argument (i.e. "
+           << "{ actions: [{rotate: 90}] }.  Supported actions include: ";
+
+        // add all actions
+        for (unsigned int i = 0; i < trans::num(); i++) 
+        {
+            const trans::Transformation * t = trans::get(i);
+            ss << t->name << " -- " << t->doc << " | ";
+        }
+        
+        actions.setDocString(ss.str().c_str());
+        as.push_back(actions);
+
+        bp::service::Function f;
+        f.setName("transform");
+        f.setDocString("Perform a set of transformations on an input image");
+        f.setArguments(as);
+
+        fs.push_back(f);
+
+        s_desc.setFunctions(fs);
+    }
+    
     g_bpCoreFunctions = bpCoreFunctions;
 
     // initialize the GraphicsMagick engine.  vroom.
     imageproc::init();
 
-    return &s_serviceDef;
+    return s_desc.toBPCoreletDefinition();
 }
 
 /** and finally, declare the entry point to the service */

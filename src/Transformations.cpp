@@ -418,22 +418,77 @@ static Image * sepiaTransform(const Image * inImage,
 
 
 static trans::Transformation s_transMap[] = {
-    { "contrast", true, false, contrastTransform },    
-    { "crop", true, true, cropTransform },    
-    { "despeckle", false, false, despeckleTransform },
-    { "enhance", false, false, enhanceTransform },    
-    { "grayscale", true, true, grayscaleTransform },    
-    { "greyscale", true, true, grayscaleTransform },    
-    { "negate", false, false, negateTransform },
-    { "noop", false, false, noopTransform },
-    { "oilpaint", true, true, oilpaintTransform },    
-    { "psychodelic", false, false, psychodelicTransform },
-    { "rotate", true, false, rotateTransform },
-    { "scale", true, true, scaleTransform },    
-    { "sepia", true, true, sepiaTransform },    
-    { "solarize", false, false, solarizeTransform },
-    { "swirl", true, true, swirlTransform }    
-    
+    {
+        "contrast", true, false, contrastTransform,
+        "adjust the image's contrast, accepts an optional numeric argument "
+        "between -10 and 10"
+    },    
+    {
+        "crop", true, true, cropTransform,
+        "select a subset of an image, accepts an array of four floating point "
+        "numbers: x1,y1,x2,y2 which are between 0.0 and 1.0 and are relative "
+        "coordinates to the upper left hand corner of the image"
+    },    
+    {
+        "despeckle", false, false, despeckleTransform,
+        "reduces the speckle noise in an image while perserving the edges of "
+        "the original image, accepts no arguments"
+    },
+    {
+        "enhance", false, false, enhanceTransform,
+        "Applies a digital filter that improves the quality of a noisy image, "
+        "accepts no arguments "
+    },    
+    {
+        "grayscale", true, true, grayscaleTransform,
+        "remove the color from an image, accepts no arguments"
+    },    
+    {
+        "greyscale", true, true, grayscaleTransform,
+        "an alias for 'grayscale'"
+    },    
+    {
+        "negate", false, false, negateTransform,
+        "negate the colors of the image, accepts no arguments"
+    },
+    {
+        "noop", false, false, noopTransform,
+        "do nothing.  may be applied multiple times.  still does nothing."
+    },
+    {
+        "oilpaint", true, true, oilpaintTransform,
+        "an effect that will make the image look like an oil painting, "
+        "accepts no arguments"
+    },    
+    {
+        "psychodelic", false, false, psychodelicTransform,
+        "trip out an image.  takes no arguments.  may be applied multiple "
+        "times."
+    },
+    {
+        "rotate", true, false, rotateTransform,
+        "rotate an image by some number of degrees, takes a single numeric "
+        "argument"
+    },
+    {
+        "scale", true, true, scaleTransform,
+        "downscale an image preserving aspect ratio.  you may provide the "
+        "integer arguments maxwidth and/or maxheight which limit the image "
+        "in the specified direction.  units are pixels."
+    },    
+    {
+        "sepia", true, true, sepiaTransform,
+        "sepia tone an image.  no arguments."
+    },    
+    {
+        "solarize", false, false, solarizeTransform,
+        "solarize an image.  no arguments"
+    },
+    {
+        "swirl", true, true, swirlTransform,
+        "swirl an image.  optionally a numeric argument specifies the degrees "
+        "to swirl, default is 90 degrees."
+    }    
 };
 
 unsigned int

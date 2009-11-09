@@ -27,6 +27,8 @@ namespace trans {
         bool requiresArgs;
         // the function that actually performs work 
         TransformationFunc transform;
+        // documentation
+        const char * doc;
     } Transformation;
 
     unsigned int num();

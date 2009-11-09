@@ -71,6 +71,8 @@ LINK_DIRECTORIES(
 SET(EXT_SRCS
   ${ServiceTools}/CppTools/src/bptypeutil.cpp
   ${ServiceTools}/CppTools/src/bpurlutil.cpp
+  ${ServiceTools}/CppTools/src/bpservicedescription.cpp
+  ${ServiceTools}/CppTools/src/bpserviceversion.cpp
 )
 
 SET(SRCS service.cpp Transformations.hh ImageProcessor.cpp util/fileutil.cpp)
