@@ -3,6 +3,12 @@
 
 #include <sstream>
 
+#include <assert.h>
+
+#ifdef WIN32
+#define strcasecmp _stricmp
+#endif
+
 static Image * noopTransform(const Image * inImage,
                              const bp::Object * args,
                              int quality, std::string &oError)
