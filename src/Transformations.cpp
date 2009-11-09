@@ -340,7 +340,7 @@ static Image * grayscaleTransform(const Image * inImage,
     return i;
 }
 
-static Image * psychodelicTransform(const Image * inImage,
+static Image * psychedelicTransform(const Image * inImage,
                                     const bp::Object * args,
                                     int quality, std::string &oError)
 {
@@ -350,7 +350,7 @@ static Image * psychodelicTransform(const Image * inImage,
     if (!i) {
         oError.append("couldn't clone image :/");        
     } else if (!CycleColormapImage(i, 8)) {
-        oError.append("error during psychodlic occured");
+        oError.append("error during psychedlic occured");
         DestroyImage(i);
         i = NULL;
     }
@@ -461,7 +461,7 @@ static trans::Transformation s_transMap[] = {
         "accepts no arguments"
     },    
     {
-        "psychodelic", false, false, psychodelicTransform,
+        "psychedelic", false, false, psychedelicTransform,
         "trip out an image.  takes no arguments.  may be applied multiple "
         "times."
     },
