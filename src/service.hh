@@ -6,6 +6,8 @@
 #include <ServiceAPI/bpcfunctions.h>
 #include <ServiceAPI/bppfunctions.h>
 
+#define IA_DEFAULT_QUALITY 75
+
 extern const BPCFunctionTable * g_bpCoreFunctions;
 
 #endif

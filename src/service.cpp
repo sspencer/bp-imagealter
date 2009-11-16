@@ -145,7 +145,7 @@ BPPInvoke(void * instance, const char * funcName,
     }
 
     // extract quality argument
-    int quality = 75;
+    int quality = IA_DEFAULT_QUALITY;
     if (args->has("quality", BPTInteger)) {
         quality = (int)
             (long long)*((const bp::Integer *)(args->get("quality")));
@@ -233,10 +233,15 @@ BPPInitialize(const BPCFunctionTable * bpCoreFunctions,
         quality.setName("quality");
         quality.setRequired(false);
         quality.setType(bp::service::Argument::Integer);
-        quality.setDocString("The quality of the output image.  "
-                             "From 0-100.  Lower qualities "
-                             "result in faster operations and smaller file "
-                             "sizes, at the cost of image quality.");
+        {
+            std::stringstream ss;
+            ss << "The quality of the output image.  "
+               << "From 0-100.  Lower qualities "
+               << "result in faster operations and smaller file "
+               << "sizes, at the cost of image quality (default: "
+               << IA_DEFAULT_QUALITY << ")";
+            quality.setDocString(ss.str().c_str());
+        }
         as.push_back(quality);
 
         actions.setName("actions");
