@@ -111,7 +111,7 @@ IO.popen("#{sr} #{clet}", "w+") do |srp|
       raise "output mismatch" if imgGot != imgWant
       # yay!  it worked!
       successes += 1
-      puts "ok. (took #{took}s)"
+      puts "ok. (#{robj['orig_width']}x#{robj['orig_height']} -> #{robj['width']}x#{robj['height']} took #{took}s)"
     rescue => e
       err = e.to_s
       # for convenience, if the test fails, we'll *save* the output

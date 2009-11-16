@@ -298,11 +298,15 @@ imageproc::ChangeImage(const std::string & inPath,
                        Type outputFormat,
                        const bp::List & transformations,
                        int quality,
+                       unsigned int & x, unsigned int & y, 
+                       unsigned int & orig_x, unsigned int & orig_y, 
                        std::string & oError)
 {
     ExceptionInfo exception;
     Image *images;
     ImageInfo *image_info;
+
+    orig_x = orig_y = x = y = 0;
     
     GetExceptionInfo(&exception);
     image_info = CloneImageInfo((ImageInfo *) NULL);
@@ -366,7 +370,13 @@ imageproc::ChangeImage(const std::string & inPath,
         image_info = NULL;
         DestroyExceptionInfo(&exception);
         return std::string();
-    }
+    } 
+
+    // set the output size
+    orig_x = images->magick_columns;
+    orig_y = images->magick_rows;
+    x = images->columns;
+    y = images->rows;
 
     // let's set the output format correctly (default to input format)
     std::string name;

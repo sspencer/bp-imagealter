@@ -158,9 +158,12 @@ BPPInvoke(void * instance, const char * funcName,
     if (args->has("actions")) lPtr = (bp::List *) args->get("actions");
 
     std::string err;
-    
+
+
+    unsigned int x, y, orig_x, orig_y;
     std::string rez =
-        imageproc::ChangeImage(path, sd->tempDir, t, *lPtr, quality, err);
+        imageproc::ChangeImage(path, sd->tempDir, t, *lPtr, quality,
+                               x, y, orig_x, orig_y, err);
     
     if (rez.empty())
     {
@@ -176,6 +179,10 @@ BPPInvoke(void * instance, const char * funcName,
         // success!
         bp::Map m;
         m.add("file", new bp::Path(rez));
+        m.add("width", new bp::Integer(x));
+        m.add("height", new bp::Integer(y));
+        m.add("orig_width", new bp::Integer(orig_x));
+        m.add("orig_height", new bp::Integer(orig_y));
         g_bpCoreFunctions->postResults(tid, m.elemPtr());
     }
     

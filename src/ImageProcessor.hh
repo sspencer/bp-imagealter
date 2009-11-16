@@ -62,6 +62,10 @@ namespace imageproc {
      *  outputFormat - the type of image to return (short string rep)
      *  transformations - a list of transformations to perform in order
      *  error - a verbose developer readable english error
+     *  x - the horizontal dimension of the resultant image
+     *  y - the vertical dimension of the resultant image
+     *  orig_x - the horizontal dimension of the original image
+     *  orig_y - the vertical dimension of the original image
      *  \returns .empty() on error, otherwise the path to resulting image
      */ 
     std::string ChangeImage(    
@@ -70,6 +74,8 @@ namespace imageproc {
         Type outputFormat,
         const bp::List & transformations,
         int quality,
+        unsigned int & x, unsigned int & y, 
+        unsigned int & orig_x, unsigned int & orig_y, 
         std::string & error);
 };
 
