@@ -477,7 +477,7 @@ static trans::Transformation s_transMap[] = {
         "in the specified direction.  units are pixels."
     },    
     {
-        "sepia", true, true, sepiaTransform,
+        "sepia", false, false, sepiaTransform,
         "sepia tone an image.  no arguments."
     },    
     {
