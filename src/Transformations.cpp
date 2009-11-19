@@ -21,6 +21,18 @@ static Image * noopTransform(const Image * inImage,
 }
 
 
+static Image * blurTransform(const Image * inImage,
+                             const bp::Object * args,
+                             int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = BlurImage(inImage, 1.0, 0.5, &exception);
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
 static Image * despeckleTransform(const Image * inImage,
                                   const bp::Object * args,
                                   int quality, std::string &oError)
@@ -422,6 +434,10 @@ static trans::Transformation s_transMap[] = {
         "contrast", true, false, contrastTransform,
         "adjust the image's contrast, accepts an optional numeric argument "
         "between -10 and 10"
+    },    
+    {
+        "blur", false, false, blurTransform,
+        "blur (or 'smooth') an image"
     },    
     {
         "crop", true, true, cropTransform,
