@@ -1,3 +1,6 @@
+2009-11-16 Changes in 4.0.3
+	* (lth) 6 new features: blur, dither, equalize, normalize, unsharpen, and sharpen
+
 2009-11-16 Changes in 4.0.2
 	* (lth) Fix bug in sepia arg validation.  sepia takes no arguments!
 
