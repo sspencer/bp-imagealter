@@ -43,6 +43,17 @@ static Image * sharpenTransform(const Image * inImage,
     return i;
 }
 
+static Image * unsharpenTransform(const Image * inImage,
+                             const bp::Object * args,
+                             int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = UnsharpMaskImage( inImage, 0, 0.5, 1, 0.05, &exception );
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
 
 static Image * despeckleTransform(const Image * inImage,
                                   const bp::Object * args,
@@ -588,7 +599,11 @@ static trans::Transformation s_transMap[] = {
         "swirl", true, true, swirlTransform,
         "swirl an image.  optionally a numeric argument specifies the degrees "
         "to swirl, default is 90 degrees."
-    }    
+    },
+    {
+        "unsharpen", false, false, unsharpenTransform,
+        "unsharpen an image"
+    }
 };
 
 unsigned int
