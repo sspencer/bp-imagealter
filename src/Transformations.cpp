@@ -32,6 +32,17 @@ static Image * blurTransform(const Image * inImage,
     return i;
 }
 
+static Image * sharpenTransform(const Image * inImage,
+                             const bp::Object * args,
+                             int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = SharpenImage(inImage, 2.0, 1.0, &exception);
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
 
 static Image * despeckleTransform(const Image * inImage,
                                   const bp::Object * args,
@@ -327,6 +338,62 @@ static Image * cropTransform(const Image * inImage,
 }
 
 
+static Image * equalizeTransform(const Image * inImage,
+                                  const bp::Object * args,
+                                  int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if (!i) {
+        oError.append("couldn't clone image :/");        
+    } else if (!EqualizeImage(i)) {
+        oError.append("error occured during equalization");
+        DestroyImage(i);
+        i = NULL;
+    }
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+static Image * normalizeTransform(const Image * inImage,
+                                  const bp::Object * args,
+                                  int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if (!i) {
+        oError.append("couldn't clone image :/");        
+    } else if (!NormalizeImage(i)) {
+        oError.append("error occured during normalization");
+        DestroyImage(i);
+        i = NULL;
+    }
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
+static Image * ditherTransform(const Image * inImage,
+                               const bp::Object * args,
+                               int quality, std::string &oError)
+{
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if (!i) {
+        oError.append("couldn't clone image :/");        
+    } else if (!OrderedDitherImage(i)) {
+        oError.append("error occured during ditherizasification");
+        DestroyImage(i);
+        i = NULL;
+    }
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
 static Image * grayscaleTransform(const Image * inImage,
                                   const bp::Object * args,
                                   int quality, std::string &oError)
@@ -451,10 +518,19 @@ static trans::Transformation s_transMap[] = {
         "the original image, accepts no arguments"
     },
     {
+        "dither", false, false, ditherTransform,
+        "Uses the ordered dithering technique of reducing color images to monochrome using positional information to retain as much information as possible."
+    },
+    {
         "enhance", false, false, enhanceTransform,
         "Applies a digital filter that improves the quality of a noisy image, "
         "accepts no arguments "
     },    
+    {
+        "equalize", false, false, equalizeTransform,
+        "Applies a histogram equalization to the image."
+    },
+
     {
         "grayscale", false, false, grayscaleTransform,
         "remove the color from an image, accepts no arguments"
@@ -470,6 +546,10 @@ static trans::Transformation s_transMap[] = {
     {
         "noop", false, false, noopTransform,
         "do nothing.  may be applied multiple times.  still does nothing."
+    },
+    {
+        "normalize", false, false, normalizeTransform,
+        "Enhances the contrast of a color image by adjusting the pixels color to span the entire range of colors available."
     },
     {
         "oilpaint", false, false, oilpaintTransform,
@@ -495,6 +575,10 @@ static trans::Transformation s_transMap[] = {
     {
         "sepia", false, false, sepiaTransform,
         "sepia tone an image.  no arguments."
+    },    
+    {
+        "sharpen", false, false, sharpenTransform,
+        "sharpen an image"
     },    
     {
         "solarize", false, false, solarizeTransform,
