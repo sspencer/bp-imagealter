@@ -1,4 +1,5 @@
 {
   "file":    "cairo.jpg",
-  "actions": [ {"scale": { "maxwidth": 60, "maxheight": 60 } } ]
+  "quality": 80,
+  "actions": [ {"thumbnail": { "maxwidth": 120, "maxheight": 120 } } ]
 }

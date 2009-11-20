@@ -1,4 +1,4 @@
 {
-  "file":    "cairo_sm.jpeg",
-  "actions": [ {"rotate": 45 }, {"scale": { "maxwidth": 80, "maxheight": 80 } } ]
+  "file":    "cairo.jpg",
+  "actions": [ {"thumbnail": { "maxwidth": 80, "maxheight": 80 } }, {"rotate": 45 } ]
 }

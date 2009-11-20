@@ -201,10 +201,15 @@ static Image * swirlTransform(const Image * inImage,
 }
 
 
-static Image * scaleTransform(const Image * inImage,
-                              const bp::Object * args,
-                              int quality, std::string &oError)
+static bool
+extractScalingDimensions(const char * funcName,
+                         const Image * inImage,                         
+                         const bp::Object * args,
+                         unsigned int &x,
+                         unsigned int &y,                         
+                         std::string &oError)
 {
+    x = y = 0;
     int maxwidth = -1;
     int maxheight = -1;
     
@@ -244,8 +249,8 @@ static Image * scaleTransform(const Image * inImage,
     // maxwidth now contain values that we should constrain to
     
     // first we'll determine the size of the input
-    unsigned int x = inImage->magick_columns;
-    unsigned int y = inImage->magick_rows;
+    x = inImage->columns;
+    y = inImage->rows;
     unsigned int origx = x, origy = y;
     if (maxwidth <= 0) maxwidth = x;
     if (maxheight <= 0) maxheight = y;
@@ -273,8 +278,20 @@ static Image * scaleTransform(const Image * inImage,
         "from (%lu, %lu) to (%lu, %lu)",
         maxwidth, maxheight, origx, origy, x, y);
 
-    // XXX: should we use different scaling algos based on quality?
+    return true;
+}
 
+static Image * scaleTransform(const Image * inImage,
+                              const bp::Object * args,
+                              int quality, std::string &oError)
+{
+    unsigned int x = 0, y = 0;
+    
+    if (!extractScalingDimensions("scale", inImage, args, x, y, oError))
+    {
+        return NULL;
+    }
+    
     ExceptionInfo exception;
     GetExceptionInfo(&exception);
     Image * img = ResizeImage(inImage, x, y, LanczosFilter, 1.0, &exception);
@@ -282,6 +299,26 @@ static Image * scaleTransform(const Image * inImage,
 
     return img;
 }
+
+static Image * thumbnailTransform(const Image * inImage,
+                                   const bp::Object * args,
+                                   int quality, std::string &oError)
+{
+    unsigned int x = 0, y = 0;
+    
+    if (!extractScalingDimensions("scale", inImage, args, x, y, oError))
+    {
+        return NULL;
+    }
+    
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+    Image * img = ThumbnailImage(inImage, x, y, &exception);
+    DestroyExceptionInfo(&exception);
+
+    return img;
+}
+
 
 
 static Image * cropTransform(const Image * inImage,
@@ -600,6 +637,13 @@ static trans::Transformation s_transMap[] = {
         "swirl an image.  optionally a numeric argument specifies the degrees "
         "to swirl, default is 90 degrees."
     },
+    {
+        "thumbnail", true, true, thumbnailTransform,
+        "An alternate version of 'scale' optimized for fast thumnailing, "
+        "combine with a relatively high 'quality' argument (75-85) for "
+        "the best balance between speed and quality.  Accepts the same "
+        "arguments as 'scale'."
+    },    
     {
         "unsharpen", false, false, unsharpenTransform,
         "unsharpen an image"
