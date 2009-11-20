@@ -109,7 +109,9 @@ CACHE STRING "use 10.4 frameworks" FORCE)
       ADD_DEFINITIONS(-DLINUX -D_LINUX -DXP_LINUX)
     ENDIF()
  
-    SET(CMAKE_CXX_FLAGS "-Wall ${isysrootFlag} ${minVersionFlag}")
+    SET(CMAKE_CXX_FLAGS "-Wall ${isysrootFlag} ${minVersionFlag}"
+        CACHE STRING "ImageAlter CXX flags" FORCE)
+
     SET(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g")
     SET(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Os")
     SET(CMAKE_MODULE_LINKER_FLAGS_RELEASE "-Wl,-x")
