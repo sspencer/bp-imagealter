@@ -122,7 +122,7 @@ IO.popen("#{sr} #{clet}", "w+") do |srp|
         File.open(gotPath, "wb") { |oi| oi.write(imgGot) }
         err += " [left result in #{File.basename(gotPath)}]"
       end
-      puts "fail (#{err})"
+      puts "fail (#{err} took #{took}s)"
     end
   end
   puts "#{successes}/#{tests} tests completed successfully"
