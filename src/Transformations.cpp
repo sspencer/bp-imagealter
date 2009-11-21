@@ -519,56 +519,24 @@ static MagickPassFail sepiaWorker(
 
 	float r1, g1, b1, r2, g2, b2;
 
-	if (1) {
-		// Algorithm 1
-		// http://blogs.techrepublic.com.com/howdoi/?p=120
-	  	for (i=0; i < npixels; i++) {
-			r1 = (float)pixels[i].red;
-			g1 = (float)pixels[i].green;
-			b1 = (float)pixels[i].blue;
+	// Modified version of this:
+	// http://blogs.techrepublic.com.com/howdoi/?p=120
+  	for (i=0; i < npixels; i++) {
+		r1 = (float)pixels[i].red;
+		g1 = (float)pixels[i].green;
+		b1 = (float)pixels[i].blue;
 
-		   	r2 = (r1 * 0.393 + g1 * 0.769 + b1 * 0.189);
-		   	g2 = (r1 * 0.349 + g1 * 0.686 + b1 * 0.168);
-		   	b2 = (r1 * 0.272 + g1 * 0.534 + b1 * 0.131);
+		r2 = (r1 * 0.373 + g1 * 0.731 + b1 * 0.180);
+		g2 = (r1 * 0.298 + g1 * 0.586 + b1 * 0.143);
+		b2 = (r1 * 0.219 + g1 * 0.431 + b1 * 0.105);
 
-			if (r2 < 0) r2 = 0; if (r2 > MaxRGB) r2 = MaxRGB;
-			if (g2 < 0) g2 = 0; if (g2 > MaxRGB) g2 = MaxRGB;
-			if (b2 < 0) b2 = 0; if (b2 > MaxRGB) b2 = MaxRGB;
+		if (r2 > MaxRGB) r2 = MaxRGB;
+		if (g2 > MaxRGB) g2 = MaxRGB;
+		if (b2 > MaxRGB) b2 = MaxRGB;
 
-			pixels[i].red   = r2;
-			pixels[i].green = g2;
-			pixels[i].blue  = b2;
-		}
-	} else {
-  		// Algorithm 2
-		// http://groups.google.com/group/comp.lang.java.programmer/browse_thread/thread/9d20a72c40b119d0/18f12770ec6d9dd6?lnk=raot
-		float gray, sepiaDepth = 20;
-	  	for (i=0; i < npixels; i++) {
-			r1 = (float)pixels[i].red;
-			g1 = (float)pixels[i].green;
-			b1 = (float)pixels[i].blue;
-
-			//gray = (r1+g1+b1)/3.0;
-			gray = (r1*0.299 + g1*0.587 + b1*0.114);
-
-			r2 = g2 = b2 = gray;
-			r2 = r2 + (sepiaDepth*2);
-			g2 = g2 + sepiaDepth;
-		
-			if (r2 > MaxRGB) r2 = MaxRGB;
-			if (g2 > MaxRGB) g2 = MaxRGB;
-			if (b2 > MaxRGB) b2 = MaxRGB;
-
-			b2 -= sepiaDepth;
-
-			if (r2 < 0) r2 = 0;
-	        if (g2 < 0) g2 = 0;
-	        if (b2 < 0) b2 = 0;
-
-			pixels[i].red   = r2;
-			pixels[i].green = g2;
-			pixels[i].blue  = b2;
-		}
+		pixels[i].red   = r2;
+		pixels[i].green = g2;
+		pixels[i].blue  = b2;
 	}
   
 	return MagickPass;
@@ -603,6 +571,9 @@ static Image * sepiaTransform(const Image * inImage,
         	oError.append("error during sepia quanitzation occured");
         	DestroyImage(i);
         	i = NULL;
+		} else {
+			// Add some little contrast to sepia toned image.  Looks much better with contrast.
+			i = contrastTransform(i, NULL, 100, oError);
 		}
 	}
 
