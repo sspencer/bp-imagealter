@@ -45,6 +45,9 @@ clet = File.join(File.dirname(__FILE__), "..", "src", "build", "ImageAlter")
 raise "can't execute ServiceRunner: #{sr}" if !File.executable? sr
 raise "can't find built service to test: #{clet}" if !File.directory? clet
 
+# arguments are a string that must match the test name
+substrpat = ARGV.length ? ARGV[0] : ""
+
 # perform a blocking read.  the third parameter is a magic duck:
 # 1. if it evaluates to false, we'll block the full timeo
 # 2. if it is a pattern, we'll  block until either timeo expires OR
@@ -61,7 +64,8 @@ end
 rv = 0
 
 IO.popen("#{sr} #{clet}", "w+") do |srp|
-  puts "Running ImageAlter tests"
+  puts "Running ImageAlter tests "
+  puts "(containing '#{substrpat}')" if substrpat && substrpat.length > 0
   # discard startup output
   mypread(srp, 0.5, /service initialized/)
   srp.syswrite "allocate\n"
@@ -72,6 +76,7 @@ IO.popen("#{sr} #{clet}", "w+") do |srp|
 
   # now let's iterate through all of our tests
   Dir.glob(File.join(File.dirname(__FILE__), "cases", "*.json")).each do |f|
+    next if substrpat && substrpat.length > 0 && !f.include?(substrpat)
     tests += 1 
     $stdout.write "#{File.basename(f, ".json")}: "
     $stdout.flush
