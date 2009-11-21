@@ -643,12 +643,54 @@ static Image * thresholdTransform(const Image * inImage,
 }
 
 
+
+static Image * blackThresholdTransform(const Image * inImage,
+                                       const bp::Object * args,
+                                       int quality, std::string &oError)
+{
+    double threshold = 50.0;
+    if (args != NULL) {
+        if (args->type() == BPTDouble) {
+            threshold = (double) *args;
+        } else if (args->type() == BPTInteger) {
+            threshold = (double)((long long)(*args));
+        } else {
+            oError.append("black_threshold accepts a single optional numeric argument");
+            return NULL;
+        }
+    }
+    if (threshold < 0.0) threshold = 0.0;
+    if (threshold > 100.0) threshold = 100.0;
+
+    char thresholdString[10];
+    sprintf(thresholdString, "%d%%", (int) threshold);
+    
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if (!BlackThresholdImage( i, thresholdString ))
+    {
+        DestroyImage(i);        
+        i = NULL;
+    }
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
+
 static trans::Transformation s_transMap[] = {
     {
         "contrast", true, false, contrastTransform,
         "adjust the image's contrast, accepts an optional numeric argument "
         "between -10 and 10"
     },    
+    {
+        "black_threshold", true, false, blackThresholdTransform,
+        "Given a threshold (in terms of percentage from 0-100), color all "
+        "pixels which fall under that threshold black."
+    },
     {
         "blur", false, false, blurTransform,
         "blur (or 'smooth') an image"
