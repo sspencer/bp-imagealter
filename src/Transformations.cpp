@@ -230,7 +230,7 @@ extractScalingDimensions(const char * funcName,
         else if (!strcasecmp("maxheight", k)) num = &maxheight;
         else {
             std::stringstream ss;
-            ss << "invalid argument to scale: " << k;
+            ss << "invalid argument to " << funcName << ": " << k;
             oError = ss.str();
             return NULL;
         }
@@ -306,7 +306,7 @@ static Image * thumbnailTransform(const Image * inImage,
 {
     unsigned int x = 0, y = 0;
     
-    if (!extractScalingDimensions("scale", inImage, args, x, y, oError))
+    if (!extractScalingDimensions("thumbnail", inImage, args, x, y, oError))
     {
         return NULL;
     }
