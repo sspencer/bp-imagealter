@@ -505,43 +505,110 @@ static Image * negateTransform(const Image * inImage,
 }
 
 
+static MagickPassFail sepiaWorker(
+	void *mutable_data,         /* User provided mutable data */
+	const void *immutable_data, /* User provided immutable data */
+	Image *image,               /* Modify image */
+	PixelPacket *pixels,        /* Pixel row */
+	IndexPacket *indexes,       /* Pixel row indexes */
+	const long npixels,         /* Number of pixels in row */
+	ExceptionInfo *exception)   /* Exception report */
+{
+  	register long i;  
+
+	float r1, g1, b1, r2, g2, b2;
+
+	if (1) {
+		// Algorithm 1
+		// http://blogs.techrepublic.com.com/howdoi/?p=120
+	  	for (i=0; i < npixels; i++) {
+			r1 = (float)pixels[i].red;
+			g1 = (float)pixels[i].green;
+			b1 = (float)pixels[i].blue;
+
+		   	r2 = (r1 * 0.393 + g1 * 0.769 + b1 * 0.189);
+		   	g2 = (r1 * 0.349 + g1 * 0.686 + b1 * 0.168);
+		   	b2 = (r1 * 0.272 + g1 * 0.534 + b1 * 0.131);
+
+			if (r2 < 0) r2 = 0; if (r2 > MaxRGB) r2 = MaxRGB;
+			if (g2 < 0) g2 = 0; if (g2 > MaxRGB) g2 = MaxRGB;
+			if (b2 < 0) b2 = 0; if (b2 > MaxRGB) b2 = MaxRGB;
+
+			pixels[i].red   = r2;
+			pixels[i].green = g2;
+			pixels[i].blue  = b2;
+		}
+	} else {
+  		// Algorithm 2
+		// http://groups.google.com/group/comp.lang.java.programmer/browse_thread/thread/9d20a72c40b119d0/18f12770ec6d9dd6?lnk=raot
+		float gray, sepiaDepth = 20;
+	  	for (i=0; i < npixels; i++) {
+			r1 = (float)pixels[i].red;
+			g1 = (float)pixels[i].green;
+			b1 = (float)pixels[i].blue;
+
+			//gray = (r1+g1+b1)/3.0;
+			gray = (r1*0.299 + g1*0.587 + b1*0.114);
+
+			r2 = g2 = b2 = gray;
+			r2 = r2 + (sepiaDepth*2);
+			g2 = g2 + sepiaDepth;
+		
+			if (r2 > MaxRGB) r2 = MaxRGB;
+			if (g2 > MaxRGB) g2 = MaxRGB;
+			if (b2 > MaxRGB) b2 = MaxRGB;
+
+			b2 -= sepiaDepth;
+
+			if (r2 < 0) r2 = 0;
+	        if (g2 < 0) g2 = 0;
+	        if (b2 < 0) b2 = 0;
+
+			pixels[i].red   = r2;
+			pixels[i].green = g2;
+			pixels[i].blue  = b2;
+		}
+	}
+  
+	return MagickPass;
+}
+
 static Image * sepiaTransform(const Image * inImage,
                               const bp::Object * args,
                               int quality, std::string &oError)
 {
+	MagickPassFail status=MagickPass;
     ExceptionInfo exception;
-    QuantizeInfo qi;
     GetExceptionInfo(&exception);
-    GetQuantizeInfo(&qi);
-    qi.colorspace = GRAYColorspace;
     Image * i = CloneImage(inImage, 0, 0, 1, &exception);
-
-    // sepia pixelpacket
-    PixelPacket p;
-    p.red = 112;
-    p.green = 66;
-    p.blue = 20;
-    p.opacity = 0;
 
     if (!i) {
         oError.append("couldn't clone image :/");        
-    } else if (!QuantizeImage(&qi, i)) {
-        oError.append("error during sepia quanitzation occured");
-        DestroyImage(i);
-        i = NULL;
-    } 
-    
-    if (i) {
-        Image * colorized = ColorizeImage(i, "50%", p, &exception);
-        DestroyImage(i);
-        i = colorized;
-        if (!i) oError.append("error during sepia colorization occured");
-    }
-                                          
-//    DestroyQuantizeInfo(&qi);
+	} else {
+		status=PixelIterateMonoModify(
+			sepiaWorker,
+			NULL, // const PixelIteratorOptions *options
+			NULL, // const char *description
+			NULL, // void *mutable_data
+			NULL, // const void *immutable_data
+			0, // const long x
+			0, // const long y
+			i->columns, // const unsigned long columns, 
+			i->rows, // const unsigned long rows, 
+			i,
+			&exception);
+		
+		if (status == MagickFail) {
+        	oError.append("error during sepia quanitzation occured");
+        	DestroyImage(i);
+        	i = NULL;
+		}
+	}
+
     DestroyExceptionInfo(&exception);
     return i;
 }
+
 
 
 static trans::Transformation s_transMap[] = {
