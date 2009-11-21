@@ -572,8 +572,13 @@ static Image * sepiaTransform(const Image * inImage,
         	DestroyImage(i);
         	i = NULL;
 		} else {
+			// Remove contrast.  Could blow up the highlights on certain pictures.
+			// Let the user add contrast if required.
+			/*
 			// Add some little contrast to sepia toned image.  Looks much better with contrast.
 			i = contrastTransform(i, NULL, 100, oError);
+			*/
+
 		}
 	}
 
