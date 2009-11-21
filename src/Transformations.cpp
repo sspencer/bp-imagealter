@@ -216,7 +216,8 @@ extractScalingDimensions(const char * funcName,
     assert(args != NULL);
     
     if (args->type() != BPTMap) {
-        oError.append("rotate accepts an object containing one or more "
+        oError.append(funcName);
+        oError.append(" accepts an object containing one or more "
                       "of the properties: maxwidth, maxheight");
         return NULL;
     }
@@ -544,6 +545,38 @@ static Image * sepiaTransform(const Image * inImage,
 }
 
 
+static Image * thresholdTransform(const Image * inImage,
+                                  const bp::Object * args,
+                                  int quality, std::string &oError)
+{
+    double threshold = 128.0;
+    if (args != NULL) {
+        if (args->type() == BPTDouble) {
+            threshold = (double) *args;
+        } else if (args->type() == BPTInteger) {
+            threshold = (double)((long long)(*args));
+        } else {
+            oError.append("threshold accepts a single optional numeric argument");
+            return NULL;
+        }
+    }
+    if (threshold < 0.0) threshold = 0.0;
+    if (threshold > 256.0) threshold = 256.0;
+
+    ExceptionInfo exception;
+    GetExceptionInfo(&exception);
+
+    Image * i = CloneImage(inImage, 0, 0, 1, &exception);
+    if ( !ThresholdImage( i, threshold ) )
+    {
+        DestroyImage(i);        
+        i = NULL;
+    }
+    DestroyExceptionInfo(&exception);
+    return i;
+}
+
+
 static trans::Transformation s_transMap[] = {
     {
         "contrast", true, false, contrastTransform,
@@ -636,6 +669,13 @@ static trans::Transformation s_transMap[] = {
         "swirl", true, true, swirlTransform,
         "swirl an image.  optionally a numeric argument specifies the degrees "
         "to swirl, default is 90 degrees."
+    },
+    {
+        "threshold", true, false, thresholdTransform,
+        "given a numeric threshold collapse pixels of intensity greater than "
+        "the threshold to white, and those less than to black.  Result is a "
+        "two color image.  Accepts a single numeric arg from 0-256, default "
+        "is 128."
     },
     {
         "thumbnail", true, true, thumbnailTransform,
