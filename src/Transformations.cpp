@@ -515,20 +515,25 @@ static MagickPassFail sepiaWorker(
 	const long npixels,         /* Number of pixels in row */
 	ExceptionInfo *exception)   /* Exception report */
 {
-  	register long i;  
+	// Modified version of algorithm from:
+	//     http://blogs.techrepublic.com.com/howdoi/?p=120
+	//
+  	for (long i=0; i < npixels; i++) {
+		float r1 = (float)pixels[i].red;
+		float g1 = (float)pixels[i].green;
+		float b1 = (float)pixels[i].blue;
 
-	float r1, g1, b1, r2, g2, b2;
+		// Changed the factors to 
+		//   (1) make filter less yellow and
+		//   (2) make filter less bright
+		float r2 = (r1 * 0.373 + g1 * 0.731 + b1 * 0.180);
+		float g2 = (r1 * 0.298 + g1 * 0.586 + b1 * 0.143);
+		float b2 = (r1 * 0.219 + g1 * 0.431 + b1 * 0.105);
 
-	// Modified version of this:
-	// http://blogs.techrepublic.com.com/howdoi/?p=120
-  	for (i=0; i < npixels; i++) {
-		r1 = (float)pixels[i].red;
-		g1 = (float)pixels[i].green;
-		b1 = (float)pixels[i].blue;
-
-		r2 = (r1 * 0.373 + g1 * 0.731 + b1 * 0.180);
-		g2 = (r1 * 0.298 + g1 * 0.586 + b1 * 0.143);
-		b2 = (r1 * 0.219 + g1 * 0.431 + b1 * 0.105);
+		// Original factors
+		// float r2 = (r1 * .393 + g1 *.769 + b1 * .189);
+		// float g2 = (r1 * .349 + g1 *.686 + b1 * .168);
+		// float b2 = (r1 * .272 + g1 *.534 + b1 * .131);
 
 		if (r2 > MaxRGB) r2 = MaxRGB;
 		if (g2 > MaxRGB) g2 = MaxRGB;
